@@ -48,6 +48,8 @@ export default function Producto() {
     cedula: "",
     nombre: "",
     direccion: "",
+    correoElectronico: "",
+    numeroCelular: "",
     formaPago: FORMAS_PAGO[0],
   });
 
@@ -219,6 +221,8 @@ export default function Producto() {
       cedula: cliente.cedula,
       nombre: cliente.nombre,
       direccion: cliente.direccion,
+      correoElectronico: cliente.correoElectronico,
+      numeroCelular: cliente.numeroCelular,
       formaPago: FORMAS_PAGO[0],
     });
     setBusquedaCliente("");
@@ -232,23 +236,27 @@ export default function Producto() {
       cedula: "",
       nombre: "",
       direccion: "",
+      correoElectronico: "",
+      numeroCelular: "",
       formaPago: FORMAS_PAGO[0],
     });
   };
 
   const finalizarPedido = () => {
-    if (!datosCliente.cedula || !datosCliente.nombre || !datosCliente.direccion || carrito.length === 0) {
+    if (!datosCliente.cedula || !datosCliente.nombre || !datosCliente.direccion || !datosCliente.correoElectronico || !datosCliente.numeroCelular || carrito.length === 0) {
       alert("Por favor completa todos los datos (Cédula, Nombre, Dirección) y agrega productos");
       return;
     }
 
-    crearPedido(datosCliente.cedula, datosCliente.nombre, datosCliente.direccion, carrito, datosCliente.formaPago);
+    crearPedido(datosCliente.cedula, datosCliente.nombre, datosCliente.direccion, carrito,  datosCliente.formaPago);
 
     setCarrito([]);
     setDatosCliente({
       cedula: "",
       nombre: "",
       direccion: "",
+      correoElectronico: "",
+      numeroCelular: "",
       formaPago: FORMAS_PAGO[0],
     });
     setMostrarModalPedido(false);
@@ -743,6 +751,8 @@ export default function Producto() {
                     <div className="cliente-seleccionado">
                       <p><strong>Cliente seleccionado:</strong> {clienteSeleccionado.nombre}</p>
                       <p><small>{clienteSeleccionado.cedula}</small></p>
+                      <p><small>Correo: {datosCliente.correoElectronico || "No registrado"}</small></p>
+                      <p><small>Celular: {datosCliente.numeroCelular || "No registrado"}</small></p>
                     </div>
                   )}
                 </div>
@@ -769,6 +779,22 @@ export default function Producto() {
                     value={datosCliente.direccion}
                     onChange={(e) =>
                       setDatosCliente({ ...datosCliente, direccion: e.target.value })
+                    }
+                  />
+
+                  <input
+                    placeholder="Correo electrónico"
+                    value={datosCliente.correoElectronico}
+                    onChange={(e) =>
+                      setDatosCliente({ ...datosCliente, correoElectronico: e.target.value })
+                    }
+                  />
+
+                  <input
+                    placeholder="Número de celular"
+                    value={datosCliente.numeroCelular}
+                    onChange={(e) =>
+                      setDatosCliente({ ...datosCliente, numeroCelular: e.target.value })
                     }
                   />
                 </>
