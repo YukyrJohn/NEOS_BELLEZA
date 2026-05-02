@@ -123,9 +123,10 @@ export function StoreProvider({ children }) {
   // 🚗 REPARTIDORES - Gestión de entregas
   // ============================================
   const [repartidores, setRepartidores] = useState([
-    { id: 1, nombre: "Carlos Rodríguez", zona: "Norte", pedidosAsignados: 0 },
-    { id: 2, nombre: "David García", zona: "Sur", pedidosAsignados: 0 },
-    { id: 3, nombre: "Elena Martínez", zona: "Oriente", pedidosAsignados: 0 }
+    { id: 1, nombre: "Carlos Rodríguez", zona: "Norte", estado: "activo", pedidosAsignados: 0 },
+    { id: 2, nombre: "David García", zona: "Sur", estado: "activo", pedidosAsignados: 0 },
+    { id: 3, nombre: "Elena Martínez", zona: "Oriente", estado: "activo", pedidosAsignados: 0 },
+    { id: 4, nombre: "Miguel Ángel", zona: "Occidente", estado: "activo", pedidosAsignados: 0 }
   ]);
 
   // ============================================
@@ -222,7 +223,128 @@ export function StoreProvider({ children }) {
       estado: "Pendiente",
       fecha: "10/02/2026",
       formaPago: "Efectivo",
-      repartidor: null
+      repartidor: "Carlos Rodríguez"
+    },
+    {
+      id: 3,
+      cliente: "María López",
+      direccion: "Plaza Mayor 789",
+      items: [{ id: 3, nombre: "Esmalte Rojo Intenso", precio: 12000, cantidad: 2 }],
+      total: 24000,
+      estado: "Entregado",
+      fecha: "09/02/2026",
+      formaPago: "Efectivo",
+      repartidor: "Carlos Rodríguez"
+    },
+    {
+      id: 4,
+      cliente: "Pedro Sánchez",
+      direccion: "Calle Nueva 321",
+      items: [{ id: 1, nombre: "Gancho Dorado", precio: 8000, cantidad: 1 }],
+      total: 8000,
+      estado: "Cancelado",
+      fecha: "10/02/2026",
+      formaPago: "Crédito",
+      repartidor: "Carlos Rodríguez"
+    },
+    {
+      id: 5,
+      cliente: "Sofia Ramírez",
+      direccion: "Avenida Sur 654",
+      items: [{ id: 2, nombre: "Keratina Pro", precio: 45000, cantidad: 1 }],
+      total: 45000,
+      estado: "En camino",
+      fecha: "10/02/2026",
+      formaPago: "Abono",
+      repartidor: "David García"
+    },
+    {
+      id: 6,
+      cliente: "Juan Torres",
+      direccion: "Calle Este 987",
+      items: [{ id: 3, nombre: "Esmalte Rojo Intenso", precio: 12000, cantidad: 1 }],
+      total: 12000,
+      estado: "Pendiente",
+      fecha: "10/02/2026",
+      formaPago: "Efectivo",
+      repartidor: "David García"
+    },
+    {
+      id: 7,
+      cliente: "Carmen Díaz",
+      direccion: "Plaza Norte 147",
+      items: [{ id: 1, nombre: "Gancho Dorado", precio: 8000, cantidad: 3 }],
+      total: 24000,
+      estado: "Entregado",
+      fecha: "08/02/2026",
+      formaPago: "Crédito",
+      repartidor: "David García"
+    },
+    {
+      id: 8,
+      cliente: "Roberto Silva",
+      direccion: "Avenida Oeste 258",
+      items: [{ id: 2, nombre: "Keratina Pro", precio: 45000, cantidad: 1 }],
+      total: 45000,
+      estado: "En camino",
+      fecha: "10/02/2026",
+      formaPago: "Efectivo",
+      repartidor: "Elena Martínez"
+    },
+    {
+      id: 9,
+      cliente: "Patricia Ruiz",
+      direccion: "Calle Central 369",
+      items: [{ id: 3, nombre: "Esmalte Rojo Intenso", precio: 12000, cantidad: 1 }],
+      total: 12000,
+      estado: "Pendiente",
+      fecha: "10/02/2026",
+      formaPago: "Abono",
+      repartidor: "Elena Martínez"
+    },
+    {
+      id: 11,
+      cliente: "Isabel Morales",
+      direccion: "Calle Antigua 852",
+      items: [{ id: 3, nombre: "Esmalte Rojo Intenso", precio: 12000, cantidad: 1 }],
+      total: 12000,
+      estado: "Pendiente",
+      fecha: "10/02/2026",
+      formaPago: "Crédito",
+      repartidor: "Miguel Ángel"
+    },
+    {
+      id: 12,
+      cliente: "Fernando Castro",
+      direccion: "Avenida Moderna 963",
+      items: [{ id: 1, nombre: "Gancho Dorado", precio: 8000, cantidad: 1 }],
+      total: 8000,
+      estado: "Entregado",
+      fecha: "06/02/2026",
+      formaPago: "Efectivo",
+      repartidor: "Miguel Ángel"
+    },
+    {
+      id: 13,
+      cliente: "Gabriela Vega",
+      direccion: "Plaza Vieja 159",
+      items: [{ id: 2, nombre: "Keratina Pro", precio: 45000, cantidad: 1 }],
+      total: 45000,
+      estado: "Cancelado",
+      fecha: "09/02/2026",
+      formaPago: "Abono",
+      repartidor: "Miguel Ángel"
+    },
+    {
+      id: 14,
+      cliente: "Andrés Pinto",
+      direccion: "Calle Nueva Esperanza 753",
+      items: [{ id: 3, nombre: "Esmalte Rojo Intenso", precio: 12000, cantidad: 1 }],
+      total: 12000,
+      estado: "Pendiente",
+      fecha: "10/02/2026",
+      formaPago: "Efectivo",
+      repartidor: null // Pedido sin asignar
     }
   ]);
 

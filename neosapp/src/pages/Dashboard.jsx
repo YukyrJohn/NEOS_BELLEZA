@@ -2,6 +2,7 @@ import "./dashboard.css";
 import { useStore } from "../context/StoreContext";
 import { useAuth } from "../context/AuthContext";
 import Producto from "./Producto";
+import RepartidoresChart from "../components/RepartidoresChart";
 
 export default function Dashboard() {
   const { pedidos, repartidores, productos, clientes } = useStore();
@@ -105,19 +106,10 @@ export default function Dashboard() {
 
       </div>
 
-      {/* Repartidores */}
+      {/* Gráfica de Repartidores */}
       <div className="card">
-        <h3>Repartidores</h3>
-
-        <div className="drivers">
-          {repartidores?.map((r) => (
-            <Driver
-              key={r.id}
-              name={r.nombre}
-              status={r.estado}
-            />
-          ))}
-        </div>
+        <h3>Estadísticas de Repartidores</h3>
+        <RepartidoresChart pedidos={pedidos} repartidores={repartidores || []} />
       </div>
 
     </div>

@@ -14,12 +14,13 @@ export default function Header() {
   const esVend = esVendedor();
   const esRepar = esRepartidor();
 
-  let tipoUsuario = "Cliente";
+  let tipoUsuario = "Invitado";
   if (esAdministrador) tipoUsuario = "Administrador";
   else if (esVend) tipoUsuario = "Vendedor";
   else if (esRepar) tipoUsuario = "Repartidor";
+  else if (usuarioAutenticado) tipoUsuario = "Cliente";
 
-  const iniciales = usuario?.substring(0, 2).toUpperCase() || "U";
+  const iniciales = usuario?.substring(0, 2).toUpperCase() || "?";
 
   const handleLogout = () => {
     logout();
@@ -30,25 +31,48 @@ export default function Header() {
     navigate("/login");
   };
 
-  const tipoClase = esAdministrador ? "admin" : esVend ? "vendedor" : esRepar ? "repartidor" : "cliente";
+  const handleRegister = () => {
+    navigate("/registro");
+  };
+
+  const handleHomeClick = () => {
+    if (usuarioAutenticado) {
+      navigate("/");
+    } else {
+      navigate("/");
+    }
+  };
+
+  const tipoClase = esAdministrador ? "admin" : esVend ? "vendedor" : esRepar ? "repartidor" : usuarioAutenticado ? "cliente" : "invitado";
 
   return (
     <header className="header header-dark">
-      <h1>Distribución de Belleza</h1>
+      <div className="header-logo-container">
+        <button 
+          className="header-logo-main"
+          onClick={handleHomeClick}
+          title="Ir al inicio"
+        >
+          NEOS
+        </button>
+        <div className="header-logo-subtitle">
+          Distribución de Belleza
+        </div>
+      </div>
 
       <div className="header-right">
         <div className="usuario-info">
           <span className={`badge-tipo ${tipoClase}`}>
             {tipoUsuario}
           </span>
-          <span className="usuario-nombre">{usuario}</span>
+          <span className="usuario-nombre">{usuario || "Usuario Invitado"}</span>
         </div>
 
         <div className="avatar-menu">
           <button
             className="avatar"
             onClick={() => setMostrarMenu(!mostrarMenu)}
-            title={usuario}
+            title={usuario || "Usuario Invitado"}
           >
             {iniciales}
           </button>
@@ -74,12 +98,24 @@ export default function Header() {
                   </button>
                 </>
               ) : (
-                <button
-                  className="menu-item login"
-                  onClick={handleLogin}
-                >
-                  Inicio de sesión
-                </button>
+                <>
+                  <div className="menu-item disabled">
+                    <span className="menu-label">No tienes sesión iniciada</span>
+                  </div>
+                  <hr className="menu-divider" />
+                  <button
+                    className="menu-item login"
+                    onClick={handleLogin}
+                  >
+                    Iniciar sesión
+                  </button>
+                  <button
+                    className="menu-item register"
+                    onClick={handleRegister}
+                  >
+                    Registrarse
+                  </button>
+                </>
               )}
             </div>
           )}

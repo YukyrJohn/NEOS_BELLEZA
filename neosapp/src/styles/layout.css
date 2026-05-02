@@ -61,6 +61,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 /* HEADER */
@@ -76,6 +77,42 @@
 .header h1 {
   color: var(--gold);
   font-size: 18px;
+}
+
+.header-logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.header-logo-main {
+  color: var(--gold);
+  font-size: 24px;
+  font-weight: 800;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  letter-spacing: 3px;
+  line-height: 1;
+}
+
+.header-logo-main:hover {
+  background: rgba(200, 169, 81, 0.1);
+  transform: scale(1.05);
+}
+
+.header-logo-subtitle {
+  color: rgba(200, 169, 81, 0.7);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  line-height: 1;
+  margin-left: 8px;
 }
 
 .header-right {
@@ -118,6 +155,11 @@
 .badge-tipo.repartidor {
   background: rgba(39, 174, 96, 0.2);
   color: #27ae60;
+}
+
+.badge-tipo.invitado {
+  background: rgba(155, 155, 155, 0.2);
+  color: #9b9b9b;
 }
 
 .usuario-nombre {
@@ -204,6 +246,16 @@
   color: #ff8787;
 }
 
+.menu-item.register {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.menu-item.register:hover {
+  background: rgba(76, 175, 80, 0.1);
+  color: #66bb6a;
+}
+
 .menu-label {
   color: #999;
   font-size: 11px;
@@ -225,4 +277,10 @@
   padding: 24px;
   background: var(--bg-gray);
   overflow-y: auto;
+}
+
+.content:has(.login-container) {
+  background: #111111;
+  padding: 0;
+  overflow: hidden;
 }

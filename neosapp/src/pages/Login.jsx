@@ -80,10 +80,29 @@ export default function Login() {
 
           {error && <div className="error-message">{error}</div>}
 
-          <button type="submit" disabled={cargando}>
+          <button type="submit" className="btn-login" disabled={cargando}>
             {cargando ? "Ingresando..." : "Ingresar"}
           </button>
         </form>
+
+        <div style={{ marginTop: "20px", textAlign: "center" }}>
+          <p style={{ color: "#aaa", fontSize: "14px" }}>
+            ¿No tienes cuenta?{" "}
+            <button
+              onClick={() => navigate("/registro")}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#c8a951",
+                cursor: "pointer",
+                textDecoration: "underline",
+                fontSize: "14px",
+              }}
+            >
+              Regístrate aquí
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );
