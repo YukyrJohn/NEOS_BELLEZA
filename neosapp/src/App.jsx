@@ -21,7 +21,12 @@ import Productos from "./pages/Producto";
 
 
 export default function App() {
-  const { usuarioAutenticado, esRepartidor, esVendedor } = useAuth();
+  const { usuarioAutenticado, esRepartidor, esVendedor, loading } = useAuth();
+
+  // Esperar a que el estado de autenticación esté listo
+  if (loading) {
+    return <div className="app">Cargando...</div>;
+  }
 
   // Si no está autenticado, mostrar tienda de productos sin sidebar
   if (!usuarioAutenticado) {

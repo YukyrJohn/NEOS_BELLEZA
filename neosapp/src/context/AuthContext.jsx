@@ -82,6 +82,7 @@ export function AuthProvider({ children }) {
   const obtenerUsuario = () => user?.email;
   const obtenerDatosUsuario = () => getUserMetadata();
   const isAuthenticated = () => !!user;
+  const usuarioAutenticado = !!user;
 
   const value = {
     user,
@@ -98,6 +99,7 @@ export function AuthProvider({ children }) {
     obtenerUsuario,
     obtenerDatosUsuario,
     isAuthenticated,
+    usuarioAutenticado,
   };
 
   return (
