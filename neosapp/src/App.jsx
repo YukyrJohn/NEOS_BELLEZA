@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Header from "./layout/Header";
 import Sidebar from "./layout/Sidebar";
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -22,6 +23,8 @@ import Productos from "./pages/Producto";
 
 export default function App() {
   const { usuarioAutenticado, esRepartidor, esVendedor, loading } = useAuth();
+  const [sidebarAbierto, setSidebarAbierto] = useState(true);
+  const toggleSidebar = () => setSidebarAbierto((prev) => !prev);
 
   // Esperar a que el estado de autenticación esté listo
   if (loading) {
@@ -71,11 +74,12 @@ export default function App() {
   // Vista especial para vendedores
   if (esVendedor()) {
     return (
-      <div className="app">
+      <div className={sidebarAbierto ? "app sidebar-open" : "app sidebar-closed"}>
         <Sidebar />
+        <div className="sidebar-backdrop" onClick={toggleSidebar} />
 
         <div className="main">
-          <Header />
+          <Header onToggleSidebar={toggleSidebar} sidebarAbierto={sidebarAbierto} />
 
           <div className="content">
             <Routes>
@@ -92,11 +96,12 @@ export default function App() {
 
   // Vista normal para admin y clientes
   return (
-    <div className="app">
+    <div className={sidebarAbierto ? "app sidebar-open" : "app sidebar-closed"}>
       <Sidebar />
+      <div className="sidebar-backdrop" onClick={toggleSidebar} />
 
       <div className="main">
-        <Header />
+        <Header onToggleSidebar={toggleSidebar} sidebarAbierto={sidebarAbierto} />
 
         <div className="content">
           <Routes>

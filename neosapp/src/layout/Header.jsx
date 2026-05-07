@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../styles/layout.css";
 
-export default function Header() {
+export default function Header({ onToggleSidebar, sidebarAbierto }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { usuarioAutenticado, obtenerDatosUsuario, esAdmin, esVendedor, esRepartidor, logout } = useAuth();
   const [mostrarMenu, setMostrarMenu] = useState(false);
 
@@ -21,6 +22,7 @@ export default function Header() {
   else if (usuarioAutenticado) tipoUsuario = "Cliente";
 
   const iniciales = usuario?.substring(0, 2).toUpperCase() || "?";
+  const mostrarTitulo = location.pathname === "/login" || location.pathname === "/registro";
 
   const handleLogout = () => {
     logout();
@@ -46,19 +48,32 @@ export default function Header() {
   const tipoClase = esAdministrador ? "admin" : esVend ? "vendedor" : esRepar ? "repartidor" : usuarioAutenticado ? "cliente" : "invitado";
 
   return (
-    <header className="header header-dark">
-      <div className="header-logo-container">
-        <button 
-          className="header-logo-main"
-          onClick={handleHomeClick}
-          title="Ir al inicio"
+    <header className={`header header-dark ${mostrarTitulo ? "" : "header-no-logo"}`}>
+      {onToggleSidebar && (
+        <button
+          type="button"
+          className="header-toggle"
+          onClick={onToggleSidebar}
+          aria-label={sidebarAbierto ? "Cerrar menú" : "Abrir menú"}
         >
-          NEOS
+          {sidebarAbierto ? "✕" : "☰"}
         </button>
-        <div className="header-logo-subtitle">
-          Distribución de Belleza
+      )}
+
+      {mostrarTitulo && (
+        <div className="header-logo-container">
+          <button 
+            className="header-logo-main"
+            onClick={handleHomeClick}
+            title="Ir al inicio"
+          >
+            NEOS
+          </button>
+          <div className="header-logo-subtitle">
+            Distribución de Belleza
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="header-right">
         <div className="usuario-info">

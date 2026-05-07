@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useStore } from "../context/StoreContext";
 import { useAuth } from "../context/AuthContext";
 import "./producto.css";
 
 const CATEGORIAS = [
-  "Ganchos para cabello",
+  "Pedrería Adhesiva",
   "Tratamientos",
   "Esmaltes",
   "Accesorios",
@@ -16,6 +16,13 @@ export default function Producto() {
   const { productos, setProductos, crearProducto, actualizarStock, agotarProducto, crearPedido, clientes } = useStore();
   const { esAdmin, esVendedor, obtenerDatosUsuario } = useAuth();
   const vendedorData = obtenerDatosUsuario();
+  
+  // Referencias para los scrolls horizontales
+  const scrollRefs = useRef({});
+  const [scrollNecesario, setScrollNecesario] = useState({});
+  const [dragging, setDragging] = useState({});
+  const [dragStart, setDragStart] = useState({});
+  
   const [mostrarModal, setMostrarModal] = useState(false);
   const [nuevo, setNuevo] = useState({
     nombre: "",
@@ -41,6 +48,8 @@ export default function Producto() {
   // Estados para el carrito
   const [carrito, setCarrito] = useState([]);
   const [mostrarModalPedido, setMostrarModalPedido] = useState(false);
+  const [busquedaProducto, setBusquedaProducto] = useState("");
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("Todas");
   const [busquedaCliente, setBusquedaCliente] = useState("");
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
   const [mostrarListaClientes, setMostrarListaClientes] = useState(false);
@@ -130,6 +139,58 @@ export default function Producto() {
     );
   };
 
+  // Funciones para scroll horizontal
+  const hacerScroll = (categoria, direccion) => {
+    const container = scrollRefs.current[categoria];
+    if (container) {
+      const scrollAmount = 240; // ancho de tarjeta + gap
+      if (direccion === "izquierda") {
+        container.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+      } else {
+        container.scrollBy({ left: scrollAmount, behavior: "smooth" });
+      }
+    }
+  };
+
+  const verificarScrollNecesario = (categoria) => {
+    const container = scrollRefs.current[categoria];
+    if (container) {
+      const necesario = container.scrollWidth > container.clientWidth;
+      setScrollNecesario((prev) => ({
+        ...prev,
+        [categoria]: necesario,
+      }));
+    }
+  };
+
+  const handleMouseDown = (categoria, e) => {
+    const container = scrollRefs.current[categoria];
+    if (!container) return;
+
+    setDragging((prev) => ({ ...prev, [categoria]: true }));
+    setDragStart((prev) => ({
+      ...prev,
+      [categoria]: {
+        x: e.clientX,
+        scrollLeft: container.scrollLeft,
+      },
+    }));
+  };
+
+  const handleMouseMove = (categoria, e) => {
+    if (!dragging[categoria]) return;
+
+    const container = scrollRefs.current[categoria];
+    if (!container) return;
+
+    const distance = e.clientX - dragStart[categoria].x;
+    container.scrollLeft = dragStart[categoria].scrollLeft - distance;
+  };
+
+  const handleMouseUp = (categoria) => {
+    setDragging((prev) => ({ ...prev, [categoria]: false }));
+  };
+
   const abrirModalStock = (producto) => {
     setProductoSeleccionado(producto);
     setNuevoStock(producto.stock.toString());
@@ -215,6 +276,40 @@ export default function Producto() {
     return clientesFiltrados;
   };
 
+  // Ordenar productos alfabéticamente
+  const obtenerProductosOrdenados = (productosFiltrados) => {
+    return [...productosFiltrados].sort((a, b) => 
+      a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' })
+    );
+  };
+
+  // Obtener categorías a mostrar basado en filtros
+  const obtenerCategoriasConProductos = () => {
+    let categoriasAMostrar = CATEGORIAS;
+    
+    // Si se filtra por categoría, solo mostrar esa
+    if (categoriaSeleccionada !== "Todas") {
+      categoriasAMostrar = [categoriaSeleccionada];
+    }
+
+    // Filtrar solo categorías que tienen productos que coinciden con la búsqueda
+    return categoriasAMostrar.filter(categoria => {
+      return productos.some(p => {
+        const coincideCategoria = p.categoria === categoria;
+        const coincideBusqueda = p.nombre.toLowerCase().includes(busquedaProducto.toLowerCase());
+        return coincideCategoria && coincideBusqueda;
+      });
+    });
+  };
+
+  // Obtener productos filtrados por categoría y búsqueda
+  const obtenerProductosFiltrados = (categoria) => {
+    return productos.filter(p => 
+      p.categoria === categoria && 
+      p.nombre.toLowerCase().includes(busquedaProducto.toLowerCase())
+    );
+  };
+
   const seleccionarCliente = (cliente) => {
     setClienteSeleccionado(cliente);
     setDatosCliente({
@@ -287,79 +382,226 @@ export default function Producto() {
         </div>
       </div>
 
-      {CATEGORIAS.map((categoria) => (
-        <div className="categoria-bloque" key={categoria}>
-          <h3 className="categoria-titulo">{categoria}</h3>
-
-          <div className="productos-scroll">
-            {productos
-              .filter((p) => p.categoria === categoria)
-              .map((p) => (
-                <div 
-                  className="producto-card" 
-                  key={p.id}
-                  onClick={() => abrirDetalles(p)}
-                  role="button"
-                  tabIndex="0"
-                >
-                  <div className="producto-imagen">
-                    <img 
-                      src={p.imagenes?.[0] || "https://images.unsplash.com/photo-1522338242592-cb0acf6f85a2?w=500&h=500&fit=crop"} 
-                      alt={p.nombre}
-                    />
-                  </div>
-
-                  <div className="producto-info">
-                    <span className="producto-nombre">
-                      {p.nombre}
-                    </span>
-                    <span className="producto-precio">
-                      ${p.precio.toLocaleString()}
-                    </span>
-                    <span className={`producto-stock ${p.stock <= 0 ? "sinstock" : ""}`}>
-                      Stock: {p.stock}
-                    </span>
-                  </div>
-
-                  <div className="producto-acciones">
-                    <button
-                      className="btn-agregar-carrito"
-                      onClick={() => agregarAlCarrito(p)}
-                      disabled={p.stock <= 0}
-                    >
-                      Agregar
-                    </button>
-                    {esAdmin() && (
-                      <>
-                        <button
-                          className="btn-stock"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            abrirModalStock(p);
-                          }}
-                          title="Actualizar stock"
-                        >
-                          Actualizar stock
-                        </button>
-                        <button
-                          className="btn-delete"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setProductos(
-                              productos.filter((x) => x.id !== p.id)
-                            );
-                          }}
-                        >
-                          Eliminar
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              ))}
-          </div>
+      {/* BUSCADOR Y FILTROS */}
+      <div className="productos-filtros">
+        <div className="busqueda-container">
+          <input
+            type="text"
+            className="input-busqueda"
+            placeholder="🔍 Buscar producto por nombre..."
+            value={busquedaProducto}
+            onChange={(e) => setBusquedaProducto(e.target.value)}
+          />
         </div>
-      ))}
+
+        <div className="filtro-categorias">
+          <button
+            className={`categoria-btn ${categoriaSeleccionada === "Todas" ? "activa" : ""}`}
+            onClick={() => setCategoriaSeleccionada("Todas")}
+          >
+            Todas
+          </button>
+          {CATEGORIAS.map((categoria) => (
+            <button
+              key={categoria}
+              className={`categoria-btn ${categoriaSeleccionada === categoria ? "activa" : ""}`}
+              onClick={() => setCategoriaSeleccionada(categoria)}
+            >
+              {categoria}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* PRODUCTOS */}
+      {obtenerCategoriasConProductos().length > 0 ? (
+        obtenerCategoriasConProductos().map((categoria) => {
+          const productosFiltrados = obtenerProductosOrdenados(obtenerProductosFiltrados(categoria));
+          const mostrarGrid = categoriaSeleccionada !== "Todas";
+
+          return (
+            <div className="categoria-bloque" key={categoria}>
+              <h3 className="categoria-titulo">{categoria}</h3>
+
+              {mostrarGrid ? (
+                <div className="productos-grid">
+                  {productosFiltrados.map((p) => (
+                    <div 
+                      className="producto-card" 
+                      key={p.id}
+                      onClick={() => abrirDetalles(p)}
+                      role="button"
+                      tabIndex="0"
+                    >
+                      <div className="producto-imagen">
+                        <img 
+                          src={p.imagenes?.[0] || "https://images.unsplash.com/photo-1522338242592-cb0acf6f85a2?w=500&h=500&fit=crop"} 
+                          alt={p.nombre}
+                        />
+                      </div>
+
+                      <div className="producto-info">
+                        <span className="producto-nombre">
+                          {p.nombre}
+                        </span>
+                        <span className="producto-precio">
+                          ${p.precio.toLocaleString()}
+                        </span>
+                        <span className={`producto-stock ${p.stock <= 0 ? "sinstock" : ""}`}>
+                          Stock: {p.stock}
+                        </span>
+                      </div>
+
+                      <div className="producto-acciones">
+                        <button
+                          className="btn-agregar-carrito"
+                          onClick={() => agregarAlCarrito(p)}
+                          disabled={p.stock <= 0}
+                        >
+                          Agregar
+                        </button>
+                        {esAdmin() && (
+                          <>
+                            <button
+                              className="btn-stock"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                abrirModalStock(p);
+                              }}
+                              title="Actualizar stock"
+                            >
+                              Actualizar stock
+                            </button>
+                            <button
+                              className="btn-delete"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setProductos(
+                                  productos.filter((x) => x.id !== p.id)
+                                );
+                              }}
+                            >
+                              Eliminar
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div 
+                  className="productos-scroll-container"
+                  onMouseEnter={() => verificarScrollNecesario(categoria)}
+                >
+                  {scrollNecesario[categoria] && (
+                    <button 
+                      className="scroll-btn scroll-btn-left"
+                      onClick={() => hacerScroll(categoria, "izquierda")}
+                      title="Desplazar izquierda"
+                    >
+                      ◀
+                    </button>
+                  )}
+                  
+                  <div 
+                    className="productos-scroll"
+                    ref={(el) => scrollRefs.current[categoria] = el}
+                    onMouseDown={(e) => handleMouseDown(categoria, e)}
+                    onMouseMove={(e) => handleMouseMove(categoria, e)}
+                    onMouseUp={() => handleMouseUp(categoria)}
+                    onMouseLeave={() => handleMouseUp(categoria)}
+                    style={{ cursor: dragging[categoria] ? "grabbing" : "grab" }}
+                  >
+                    {productosFiltrados.map((p) => (
+                      <div 
+                        className="producto-card" 
+                        key={p.id}
+                        onClick={() => {
+                          // Evitar abrir detalles si se está arrastrando
+                          if (!dragging[categoria]) {
+                            abrirDetalles(p);
+                          }
+                        }}
+                        role="button"
+                        tabIndex="0"
+                      >
+                        <div className="producto-imagen">
+                          <img 
+                            src={p.imagenes?.[0] || "https://images.unsplash.com/photo-1522338242592-cb0acf6f85a2?w=500&h=500&fit=crop"} 
+                            alt={p.nombre}
+                          />
+                        </div>
+
+                        <div className="producto-info">
+                          <span className="producto-nombre">
+                            {p.nombre}
+                          </span>
+                          <span className="producto-precio">
+                            ${p.precio.toLocaleString()}
+                          </span>
+                          <span className={`producto-stock ${p.stock <= 0 ? "sinstock" : ""}`}>
+                            Stock: {p.stock}
+                          </span>
+                        </div>
+
+                        <div className="producto-acciones">
+                          <button
+                            className="btn-agregar-carrito"
+                            onClick={() => agregarAlCarrito(p)}
+                            disabled={p.stock <= 0}
+                          >
+                            Agregar
+                          </button>
+                          {esAdmin() && (
+                            <>
+                              <button
+                                className="btn-stock"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  abrirModalStock(p);
+                                }}
+                                title="Actualizar stock"
+                              >
+                                Actualizar stock
+                              </button>
+                              <button
+                                className="btn-delete"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setProductos(
+                                    productos.filter((x) => x.id !== p.id)
+                                  );
+                                }}
+                              >
+                                Eliminar
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {scrollNecesario[categoria] && (
+                    <button 
+                      className="scroll-btn scroll-btn-right"
+                      onClick={() => hacerScroll(categoria, "derecha")}
+                      title="Desplazar derecha"
+                    >
+                      ▶
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })
+      ) : (
+        <div className="sin-resultados">
+          <p>No hay productos que coincidan con tu búsqueda</p>
+        </div>
+      )}
 
       {/* Modal para crear producto */}
       {mostrarModal && esAdmin() && (
