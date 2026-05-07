@@ -17,6 +17,8 @@ export default function Pedidos() {
 
   const [pedidoExpandido, setPedidoExpandido] = useState(null);
   const [pedidoTemp, setPedidoTemp] = useState({});
+  const [searchTerm, setSearchTerm] = useState("");
+  const [modalPedido, setModalPedido] = useState(null);
 
   const abrirEdicion = (pedido) => {
     setPedidoExpandido(pedido.id);
@@ -49,32 +51,90 @@ export default function Pedidos() {
     (p) => !pedidoTemp.items?.some((item) => item.id === p.id)
   );
 
+  const pedidosFiltrados = pedidos.filter(p =>
+    p.cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.id.toString().includes(searchTerm)
+  );
+
   return (
     <div className="pedidos-page">
       <h2>Pedidos</h2>
       <p>Gestión de pedidos creados desde la tienda</p>
 
-      {/* Lista pedidos */}
-      <div className="lista-pedidos">
-        {pedidos.length === 0 ? (
-          <p className="sin-pedidos">No hay pedidos aún. Crea uno desde la tienda de productos.</p>
-        ) : (
-          pedidos.map((p) => (
-            <div key={p.id} className="pedido-card">
+      {/* Buscador */}
+      <div className="buscador-container">
+        <input
+          type="text"
+          placeholder="Buscar por cliente o ID..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="buscador-input"
+        />
+      </div>
 
+      {/* Tabla pedidos */}
+      <table className="pedidos-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Fecha de entrega</th>
+            <th>Valor</th>
+            <th>Estado</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {pedidosFiltrados.length === 0 ? (
+            <tr>
+              <td colSpan="6" className="sin-pedidos">No hay pedidos que coincidan con la búsqueda.</td>
+            </tr>
+          ) : (
+            pedidosFiltrados.map((p) => (
+              <tr key={p.id}>
+                <td>{p.id}</td>
+                <td>{p.cliente}</td>
+                <td>{p.fecha}</td>
+                <td>${p.total.toLocaleString()}</td>
+                <td>
+                  <span className={`estado-badge estado-${p.estado.toLowerCase().replace(' ', '-')}`}>
+                    {p.estado}
+                  </span>
+                </td>
+                <td>
+                  <button
+                    className="btn-detalle"
+                    onClick={() => setModalPedido(p)}
+                    title="Ver detalle"
+                  >
+                    Ver Detalle
+                  </button>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+
+      {/* Modal de detalle */}
+      {modalPedido && (
+        <div className="modal-overlay" onClick={() => setModalPedido(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="pedido-card">
               <div className="pedido-header">
-                <strong>Pedido #{p.id}</strong>
+                <strong>Pedido #{modalPedido.id}</strong>
                 <div className="pedido-header-acciones">
                   <button
                     className="btn-editar"
-                    onClick={() => abrirEdicion(p)}
+                    onClick={() => abrirEdicion(modalPedido)}
                     title="Editar items"
                   >
                     ✎ Editar
                   </button>
                   <button
-                    className="btn-delete"
-                    onClick={() => eliminarPedido(p.id)}
+                    className="btn-cerrar-modal"
+                    onClick={() => setModalPedido(null)}
+                    title="Cerrar"
                   >
                     ✕
                   </button>
@@ -83,18 +143,18 @@ export default function Pedidos() {
 
               <div className="pedido-body">
                 <div className="pedido-info-cliente">
-                  <p><strong>Cliente:</strong> {p.cliente}</p>
-                  <p><strong>Dirección:</strong> {p.direccion}</p>
-                  <p><strong>Fecha:</strong> {p.fecha}</p>
-                  <p><strong>Forma de pago:</strong> <span className={`forma-pago ${p.formaPago.toLowerCase()}`}>{p.formaPago}</span></p>
+                  <p><strong>Cliente:</strong> {modalPedido.cliente}</p>
+                  <p><strong>Dirección:</strong> {modalPedido.direccion}</p>
+                  <p><strong>Fecha:</strong> {modalPedido.fecha}</p>
+                  <p><strong>Forma de pago:</strong> <span className={`forma-pago ${modalPedido.formaPago.toLowerCase()}`}>{modalPedido.formaPago}</span></p>
                 </div>
 
                 {/* Items con controles de edición si está expandido */}
-                {pedidoExpandido === p.id ? (
+                {pedidoExpandido === modalPedido.id ? (
                   <div className="pedido-items-editable">
                     <h5>Productos:</h5>
                     <div className="items-container">
-                      {p.items.map((item, index) => (
+                      {modalPedido.items.map((item, index) => (
                         <div key={index} className="pedido-item-editable">
                           <div className="item-info">
                             <span className="item-nombre">{item.nombre}</span>
@@ -103,7 +163,7 @@ export default function Pedidos() {
                           <div className="item-controls">
                             <button
                               className="btn-cantidad"
-                              onClick={() => handleActualizarCantidad(p.id, item.id, item.cantidad - 1)}
+                              onClick={() => handleActualizarCantidad(modalPedido.id, item.id, item.cantidad - 1)}
                               disabled={item.cantidad === 1}
                               title="Disminuir cantidad"
                             >
@@ -113,12 +173,12 @@ export default function Pedidos() {
                               type="number"
                               min="1"
                               value={item.cantidad}
-                              onChange={(e) => handleActualizarCantidad(p.id, item.id, parseInt(e.target.value) || 1)}
+                              onChange={(e) => handleActualizarCantidad(modalPedido.id, item.id, parseInt(e.target.value) || 1)}
                               className="cantidad-input"
                             />
                             <button
                               className="btn-cantidad"
-                              onClick={() => handleActualizarCantidad(p.id, item.id, item.cantidad + 1)}
+                              onClick={() => handleActualizarCantidad(modalPedido.id, item.id, item.cantidad + 1)}
                               title="Aumentar cantidad"
                             >
                               +
@@ -127,7 +187,7 @@ export default function Pedidos() {
                           <span className="item-subtotal">${(item.precio * item.cantidad).toLocaleString()}</span>
                           <button
                             className="btn-eliminar-item"
-                            onClick={() => handleEliminarItem(p.id, item.id)}
+                            onClick={() => handleEliminarItem(modalPedido.id, item.id)}
                             title="Eliminar este item"
                           >
                             🗑️
@@ -144,7 +204,7 @@ export default function Pedidos() {
                           defaultValue=""
                           onChange={(e) => {
                             if (e.target.value) {
-                              handleAgregarItem(p.id, parseInt(e.target.value));
+                              handleAgregarItem(modalPedido.id, parseInt(e.target.value));
                               e.target.value = "";
                             }
                           }}
@@ -169,7 +229,7 @@ export default function Pedidos() {
                 ) : (
                   <div className="pedido-items">
                     <h5>Productos:</h5>
-                    {p.items.map((item, index) => (
+                    {modalPedido.items.map((item, index) => (
                       <div key={index} className="pedido-item">
                         <span>{item.nombre}</span>
                         <span>x{item.cantidad}</span>
@@ -179,46 +239,48 @@ export default function Pedidos() {
                   </div>
                 )}
 
-                <p className="pedido-total"><strong>Total:</strong> ${p.total.toLocaleString()}</p>
+                <p className="pedido-total"><strong>Total:</strong> ${modalPedido.total.toLocaleString()}</p>
 
-                <div className="pedido-acciones">
-                  <div className="control">
-                    <label>Estado:</label>
-                    <select
-                      value={p.estado}
-                      onChange={(e) =>
-                        cambiarEstadoPedido(p.id, e.target.value)
-                      }
-                    >
-                      <option value="Pendiente">Pendiente</option>
-                      <option value="En camino">En camino</option>
-                      <option value="Entregado">Entregado</option>
-                      <option value="Cancelado">Cancelado</option>
-                    </select>
-                  </div>
+                {pedidoExpandido === modalPedido.id && (
+                  <div className="pedido-acciones">
+                    <div className="control">
+                      <label>Estado:</label>
+                      <select
+                        value={modalPedido.estado}
+                        onChange={(e) =>
+                          cambiarEstadoPedido(modalPedido.id, e.target.value)
+                        }
+                      >
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="En camino">En camino</option>
+                        <option value="Entregado">Entregado</option>
+                        <option value="Cancelado">Cancelado</option>
+                      </select>
+                    </div>
 
-                  <div className="control">
-                    <label>Repartidor:</label>
-                    <select
-                      value={p.repartidor || ""}
-                      onChange={(e) =>
-                        asignarRepartidor(p.id, e.target.value || null)
-                      }
-                    >
-                      <option value="">Asignar repartidor</option>
-                      {repartidores.map((r) => (
-                        <option key={r.id} value={r.nombre}>
-                          {r.nombre} - {r.zona}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="control">
+                      <label>Repartidor:</label>
+                      <select
+                        value={modalPedido.repartidor || ""}
+                        onChange={(e) =>
+                          asignarRepartidor(modalPedido.id, e.target.value || null)
+                        }
+                      >
+                        <option value="">Asignar repartidor</option>
+                        {repartidores.map((r) => (
+                          <option key={r.id} value={r.nombre}>
+                            {r.nombre} - {r.zona}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
-          ))
-        )}
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

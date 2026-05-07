@@ -450,3 +450,154 @@
     order: 5;
   }
 }
+
+/* BUSCADOR */
+.buscador-container {
+  margin-bottom: 20px;
+}
+
+.buscador-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  color: #333;
+  transition: border-color 0.2s ease;
+}
+
+.buscador-input:focus {
+  outline: none;
+  border-color: #1e40af;
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
+/* TABLA PEDIDOS */
+.pedidos-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.pedidos-table th,
+.pedidos-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.pedidos-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+.pedidos-table tr:hover {
+  background: #f8f9fa;
+}
+
+.btn-detalle {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.2s ease;
+}
+
+.btn-detalle:hover {
+  background: #0056b3;
+}
+
+/* MODAL */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.btn-cerrar {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: 8px;
+  transition: background 0.2s ease;
+}
+
+.btn-cerrar:hover {
+  background: #c82333;
+}
+
+.btn-cerrar-modal {
+  background: none;
+  border: none;
+  color: #dc3545;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 8px;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-cerrar-modal:hover {
+  color: #c82333;
+}
+
+/* ESTADO BADGES */
+.estado-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.estado-pendiente {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.estado-en-camino {
+  background: #cfe2ff;
+  color: #084298;
+}
+
+.estado-entregado {
+  background: #d1e7dd;
+  color: #0f5132;
+}
+
+.estado-cancelado {
+  background: #f8d7da;
+  color: #842029;
+}

@@ -70,8 +70,8 @@
   font-size: 14px;
   font-family: inherit;
   transition: all 0.2s ease;
-  background: rgba(255, 255, 255, 0.05);
-  color: #fff;
+  background: #1e1e1e !important;
+  color: #fff !important;
 }
 
 .form-group input::placeholder {
@@ -82,13 +82,59 @@
   outline: none;
   border-color: #c8a951;
   box-shadow: 0 0 0 3px rgba(200, 169, 81, 0.2);
-  background: rgba(255, 255, 255, 0.1);
+  background: #1e1e1e !important;
 }
 
 .form-group input:disabled {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(30, 30, 30, 0.5) !important;
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+.form-group input:invalid {
+  border-color: #ff6b6b;
+  background: #1e1e1e !important;
+  color: #fff !important;
+}
+
+.form-group input:valid {
+  background: #1e1e1e !important;
+  color: #fff !important;
+}
+
+.form-group select {
+  padding: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  background: #1e1e1e !important;
+  color: #fff !important;
+}
+
+.form-group select:focus {
+  outline: none;
+  border-color: #c8a951;
+  box-shadow: 0 0 0 3px rgba(200, 169, 81, 0.2);
+  background: #1e1e1e !important;
+}
+
+.form-group select:disabled {
+  background: rgba(30, 30, 30, 0.5) !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-group select:invalid {
+  border-color: #ff6b6b;
+  background: #1e1e1e !important;
+  color: #fff !important;
+}
+
+.form-group select:valid {
+  background: #1e1e1e !important;
+  color: #fff !important;
 }
 
 /* ERROR MESSAGE */
