@@ -60,50 +60,36 @@ export default function Dashboard() {
         <Kpi title="Incidencias" value={incidencias} alert />
       </div>
 
-      {/* Mapa + Pedidos */}
-      <div className="dashboard-row">
+      {/* Pedidos Recientes */}
+      <div className="card">
+        <h3>Pedidos recientes</h3>
 
-        <div className="card map-card">
-          <h3>Mapa en tiempo real</h3>
-          <div className="map-placeholder">
-            Mapa aquí
-          </div>
-          <button className="btn-link">
-            Ver mapa completo
-          </button>
-        </div>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Pedido</th>
+              <th>Cliente</th>
+              <th>Estado</th>
+              <th>Repartidor</th>
+            </tr>
+          </thead>
 
-        <div className="card">
-          <h3>Pedidos recientes</h3>
-
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Pedido</th>
-                <th>Cliente</th>
-                <th>Estado</th>
-                <th>Repartidor</th>
+          <tbody>
+            {pedidosRecientes.map((p) => (
+              <tr key={p.id}>
+                <td>#{p.id}</td>
+                <td>{p.cliente}</td>
+                <td>
+                  <span className={`badge ${getBadge(p.estado)}`}>
+                    {p.estado}
+                  </span>
+                </td>
+                <td>{p.repartidor || "—"}</td>
               </tr>
-            </thead>
+            ))}
+          </tbody>
 
-            <tbody>
-              {pedidosRecientes.map((p) => (
-                <tr key={p.id}>
-                  <td>#{p.id}</td>
-                  <td>{p.cliente}</td>
-                  <td>
-                    <span className={`badge ${getBadge(p.estado)}`}>
-                      {p.estado}
-                    </span>
-                  </td>
-                  <td>{p.repartidor || "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-
-          </table>
-        </div>
-
+        </table>
       </div>
 
       {/* Gráfica de Repartidores */}

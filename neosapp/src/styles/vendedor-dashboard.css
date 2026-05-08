@@ -28,9 +28,9 @@
 }
 
 .vendor-stats {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 16px;
-  flex-wrap: wrap;
 }
 
 .stat-card {
@@ -594,8 +594,7 @@
   }
 
   .vendor-stats {
-    width: 100%;
-    justify-content: space-between;
+    grid-template-columns: 1fr;
   }
 
   .info-cliente {
@@ -636,7 +635,7 @@
   }
 
   .productos-grid {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   }
 
   .clientes-scroll {
