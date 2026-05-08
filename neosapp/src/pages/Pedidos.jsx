@@ -92,16 +92,16 @@ export default function Pedidos() {
           ) : (
             pedidosFiltrados.map((p) => (
               <tr key={p.id}>
-                <td>{p.id}</td>
-                <td>{p.cliente}</td>
-                <td>{p.fecha}</td>
-                <td>${p.total.toLocaleString()}</td>
-                <td>
+                <td data-label="ID">{p.id}</td>
+                <td data-label="Nombre">{p.cliente}</td>
+                <td data-label="Fecha">{p.fecha}</td>
+                <td data-label="Valor">${p.total.toLocaleString()}</td>
+                <td data-label="Estado">
                   <span className={`estado-badge estado-${p.estado.toLowerCase().replace(' ', '-')}`}>
                     {p.estado}
                   </span>
                 </td>
-                <td>
+                <td data-label="Acción">
                   <button
                     className="btn-detalle"
                     onClick={() => setModalPedido(p)}

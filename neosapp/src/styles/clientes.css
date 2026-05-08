@@ -3,6 +3,7 @@
   padding: 24px;
   background: #f5f6f8;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .clientes-page h2 {
@@ -20,7 +21,7 @@
 /* CONTENEDOR PRINCIPAL */
 .clientes-contenedor {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: minmax(300px, 400px) 1fr;
   gap: 20px;
 }
 
@@ -30,7 +31,9 @@
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  height: fit-content;
+  min-height: fit-content;
+  display: flex;
+  flex-direction: column;
 }
 
 .clientes-lista h3 {
@@ -44,8 +47,10 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 500px;
+  max-height: 600px;
   overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
 }
 
 .clientes-scroll::-webkit-scrollbar {
@@ -82,6 +87,7 @@
   font-weight: 600;
   color: #333;
   font-size: 13px;
+  word-break: break-word;
 }
 
 .cliente-cedula {
@@ -90,12 +96,14 @@
   color: #999;
   font-family: monospace;
   font-weight: 500;
+  word-break: break-word;
 }
 
 .cliente-saldo {
   margin: 4px 0;
   font-size: 12px;
   color: #666;
+  word-break: break-word;
 }
 
 .cliente-saldo .debe {
@@ -117,6 +125,7 @@
   margin: 4px 0 0 0;
   font-size: 11px;
   color: #999;
+  word-break: break-word;
 }
 
 /* DETALLE DEL CLIENTE */
@@ -402,28 +411,176 @@
 
 /* SIN SELECCIÓN */
 .sin-seleccion {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: white;
-  border-radius: 12px;
-  padding: 60px 20px;
-  color: #999;
-  font-size: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: none;
 }
 
 /* RESPONSIVE */
 @media (max-width: 768px) {
+  .clientes-page {
+    padding: 16px;
+  }
+
+  .clientes-page h2 {
+    font-size: 20px;
+  }
+
   .clientes-contenedor {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .clientes-lista {
     max-height: 300px;
+    padding: 12px;
+  }
+
+  .clientes-lista h3 {
+    font-size: 13px;
+  }
+
+  .cliente-item {
+    padding: 10px;
+  }
+
+  .cliente-nombre {
+    font-size: 12px;
+  }
+
+  .cliente-cedula {
+    font-size: 10px;
+  }
+
+  .cliente-saldo {
+    font-size: 11px;
+  }
+
+  .cliente-pedidos {
+    font-size: 10px;
+  }
+
+  .cliente-detalle {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .detalle-header h3 {
+    font-size: 16px;
   }
 
   .info-cliente {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .info-group p {
+    font-size: 12px;
+  }
+
+  .saldo-grande {
+    font-size: 14px !important;
+  }
+
+  .seccion-telefono h4,
+  .seccion-pago h4,
+  .seccion-pedidos h4,
+  .seccion-transacciones h4 {
+    font-size: 12px;
+  }
+
+  .input-group,
+  .pago-group {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .input-group input,
+  .pago-group input {
+    min-width: auto;
+    font-size: 16px; /* Previene zoom en iOS */
+  }
+
+  .btn-actualizar,
+  .btn-pago {
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .pedido-mini {
+    padding: 8px;
+  }
+
+  .pedido-numero {
+    font-size: 11px;
+  }
+
+  .estado-badge {
+    font-size: 10px;
+  }
+
+  .pedido-fecha {
+    font-size: 10px;
+  }
+
+  .pedido-monto {
+    font-size: 12px;
+  }
+
+  .transaccion-item {
+    padding: 8px;
+  }
+
+  .trans-descripcion {
+    font-size: 11px;
+  }
+
+  .trans-fecha {
+    font-size: 10px;
+  }
+
+  .trans-monto {
+    font-size: 12px;
+  }
+
+  .sin-seleccion {
+    padding: 40px 20px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .clientes-page {
+    padding: 12px;
+  }
+
+  .clientes-page h2 {
+    font-size: 18px;
+  }
+
+  .clientes-lista {
+    max-height: 250px;
+    padding: 10px;
+  }
+
+  .cliente-item {
+    padding: 8px;
+  }
+
+  .cliente-detalle {
+    padding: 12px;
+  }
+
+  .info-cliente {
+    gap: 10px;
+  }
+
+  .input-group input,
+  .pago-group input {
+    padding: 10px 12px;
+  }
+
+  .btn-actualizar,
+  .btn-pago {
+    padding: 10px;
   }
 }

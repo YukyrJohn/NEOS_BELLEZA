@@ -7,3 +7,7 @@
   box-sizing: border-box;
   font-family: Inter, system-ui, sans-serif;
 }
+
+body {
+  overflow-x: hidden;
+}

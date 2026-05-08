@@ -2,6 +2,7 @@
   padding: 24px;
   background: #f5f6f8;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .pedidos-page h2 {
@@ -94,12 +95,13 @@
 
 .pedido-info-cliente p {
   margin: 6px 0;
-  font-size: 13px;
+  font-size: 15px;
   color: #333;
 }
 
 .pedido-info-cliente strong {
   color: #1e40af;
+  font-size: 15px;
 }
 
 /* ITEMS PEDIDO */
@@ -600,4 +602,143 @@
 .estado-cancelado {
   background: #f8d7da;
   color: #842029;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .pedidos-page {
+    padding: 16px;
+  }
+
+  .pedidos-page h2 {
+    font-size: 20px;
+  }
+
+  .buscador-container {
+    margin-bottom: 16px;
+  }
+
+  .buscador-input {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px; /* Previene zoom en iOS */
+  }
+
+  /* Tabla responsive */
+  .pedidos-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .pedidos-table thead {
+    display: none; /* Ocultar headers en móvil */
+  }
+
+  .pedidos-table tbody {
+    display: block;
+  }
+
+  .pedidos-table tr {
+    display: block;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    padding: 12px;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .pedidos-table tr:hover {
+    background: white;
+  }
+
+  .pedidos-table td {
+    display: block;
+    border: none;
+    padding: 8px 0;
+    text-align: left;
+    position: relative;
+    padding-left: 50%;
+  }
+
+  .pedidos-table td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    width: 45%;
+    padding-right: 10px;
+    white-space: nowrap;
+    font-weight: 600;
+    color: #666;
+    font-size: 12px;
+  }
+
+  .pedidos-table td:nth-child(1):before { content: "ID:"; }
+  .pedidos-table td:nth-child(2):before { content: "Nombre:"; }
+  .pedidos-table td:nth-child(3):before { content: "Fecha:"; }
+  .pedidos-table td:nth-child(4):before { content: "Valor:"; }
+  .pedidos-table td:nth-child(5):before { content: "Estado:"; }
+  .pedidos-table td:nth-child(6):before { content: "Acción:"; }
+
+  .btn-detalle {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    margin-top: 8px;
+  }
+
+  .sin-pedidos {
+    padding: 20px;
+    font-size: 14px;
+  }
+
+  /* Modal responsive */
+  .modal-content {
+    width: 95%;
+    max-height: 90vh;
+    margin: 10px;
+  }
+
+  .pedido-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .pedido-header-acciones {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .btn-editar,
+  .btn-cerrar-modal {
+    flex: 1;
+    padding: 8px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pedidos-page {
+    padding: 12px;
+  }
+
+  .pedidos-page h2 {
+    font-size: 18px;
+  }
+
+  .pedidos-table tr {
+    padding: 10px;
+  }
+
+  .pedidos-table td {
+    padding: 6px 0;
+    font-size: 14px;
+  }
+
+  .pedidos-table td:before {
+    font-size: 11px;
+  }
 }

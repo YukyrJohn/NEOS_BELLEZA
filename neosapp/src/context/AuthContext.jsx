@@ -95,12 +95,21 @@ export function AuthProvider({ children }) {
     return user?.user_metadata || {};
   };
 
+  const getUserAvatarUrl = () => {
+    const metadata = getUserMetadata();
+    if (metadata.avatar_url) return metadata.avatar_url;
+
+    const seed = user?.id || user?.email || "anon";
+    return `https://api.dicebear.com/6.x/identicon/svg?seed=${encodeURIComponent(seed)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
+  };
+
   // Funciones de compatibilidad con el código existente
   const esAdmin = () => getUserRole() === "admin";
   const esRepartidor = () => getUserRole() === "repartidor";
   const esVendedor = () => getUserRole() === "vendedor";
   const obtenerUsuario = () => user?.email;
   const obtenerDatosUsuario = () => getUserMetadata();
+  const obtenerAvatarUsuario = () => getUserAvatarUrl();
   const isAuthenticated = () => !!user;
   const usuarioAutenticado = !!user;
 
@@ -112,12 +121,14 @@ export function AuthProvider({ children }) {
     register,
     getUserRole,
     getUserMetadata,
+    getUserAvatarUrl,
     // Funciones de compatibilidad
     esAdmin,
     esRepartidor,
     esVendedor,
     obtenerUsuario,
     obtenerDatosUsuario,
+    obtenerAvatarUsuario,
     isAuthenticated,
     usuarioAutenticado,
   };

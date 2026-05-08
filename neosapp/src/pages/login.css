@@ -22,6 +22,39 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* RESPONSIVE */
+@media (max-width: 480px) {
+  .login-container {
+    padding: 16px;
+    overflow-x: hidden;
+  }
+
+  .login-box {
+    padding: 24px;
+    max-width: 100%;
+    border-radius: 12px;
+  }
+
+  .login-header h1 {
+    font-size: 24px;
+  }
+
+  .login-header p {
+    font-size: 13px;
+  }
+
+  .form-group input,
+  .form-group select {
+    padding: 14px 12px;
+    font-size: 16px; /* Previene zoom en iOS */
+  }
+
+  .btn-login {
+    padding: 16px;
+    font-size: 16px;
+  }
+}
+
 /* HEADER */
 .login-header {
   text-align: center;

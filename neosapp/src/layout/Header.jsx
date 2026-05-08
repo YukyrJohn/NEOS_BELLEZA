@@ -6,11 +6,12 @@ import "../styles/layout.css";
 export default function Header({ onToggleSidebar, sidebarAbierto }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { usuarioAutenticado, obtenerDatosUsuario, esAdmin, esVendedor, esRepartidor, logout } = useAuth();
+  const { usuarioAutenticado, obtenerDatosUsuario, obtenerAvatarUsuario, esAdmin, esVendedor, esRepartidor, logout } = useAuth();
   const [mostrarMenu, setMostrarMenu] = useState(false);
 
   const datosUsuario = obtenerDatosUsuario();
   const usuario = datosUsuario?.nombre || datosUsuario?.usuario;
+  const avatarUrl = obtenerAvatarUsuario();
   const esAdministrador = esAdmin();
   const esVend = esVendedor();
   const esRepar = esRepartidor();
@@ -80,16 +81,20 @@ export default function Header({ onToggleSidebar, sidebarAbierto }) {
           <span className={`badge-tipo ${tipoClase}`}>
             {tipoUsuario}
           </span>
-          <span className="usuario-nombre">{usuario || "Usuario Invitado"}</span>
+          <span className="usuario-nombre">{usuario || (usuarioAutenticado ? "Usuario" : "Usuario Invitado")}</span>
         </div>
 
         <div className="avatar-menu">
           <button
             className="avatar"
             onClick={() => setMostrarMenu(!mostrarMenu)}
-            title={usuario || "Usuario Invitado"}
+            title={usuario || (usuarioAutenticado ? "Usuario" : "Usuario Invitado")}
           >
-            {iniciales}
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={`Avatar de ${usuario || "Usuario"}`} />
+            ) : (
+              iniciales
+            )}
           </button>
 
           {mostrarMenu && (
