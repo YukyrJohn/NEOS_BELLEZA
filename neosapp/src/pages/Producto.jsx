@@ -339,7 +339,7 @@ export default function Producto() {
   };
 
   const finalizarPedido = () => {
-    if (!datosCliente.cedula || !datosCliente.nombre || !datosCliente.direccion || !datosCliente.correoElectronico || !datosCliente.numeroCelular || carrito.length === 0) {
+    if (!datosCliente.cedula || !datosCliente.nombre || !datosCliente.direccion || !datosCliente.correoElectronico || !datosCliente.numeroCelular || !datosCliente.password_hash || carrito.length === 0) {
       alert("Por favor completa todos los datos (Cédula, Nombre, Dirección) y agrega productos");
       return;
     }
@@ -1038,6 +1038,13 @@ export default function Producto() {
                     value={datosCliente.numeroCelular}
                     onChange={(e) =>
                       setDatosCliente({ ...datosCliente, numeroCelular: e.target.value })
+                    }
+                  />
+                                    <input
+                    placeholder="Contraseña"
+                    value={datosCliente.password_hash}
+                    onChange={(e) =>
+                      setDatosCliente({ ...datosCliente, password_hash: e.target.value })
                     }
                   />
                 </>
