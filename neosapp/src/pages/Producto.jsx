@@ -6,8 +6,9 @@ import "./producto.css";
 const CATEGORIAS = [
   "Pedrería Adhesiva",
   "Tratamientos",
-  "Esmaltes",
-  "Accesorios",
+  "Cabello",
+  "Halloween",
+  "Maquillaje"
 ];
 
 const FORMAS_PAGO = ["Efectivo", "Crédito", "Abono"];
