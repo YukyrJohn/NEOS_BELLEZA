@@ -9,6 +9,7 @@ export function StoreProvider({ children }) {
   const [pedidos, setPedidos] = useState([]);
   const [repartidores, setRepartidores] = useState([]);
   const [vendedores, setVendedores] = useState([]);
+  const [categorias, setCategorias] = useState([]);
 
   const DEFAULT_IMAGE =
     "https://images.unsplash.com/photo-1522338242592-cb0acf6f85a2?w=500";
@@ -89,6 +90,15 @@ export function StoreProvider({ children }) {
     setVendedores(data || []);
   };
 
+  const cargarCategorias = async () => {
+    const { data, error } = await supabase.from("categorias").select("*");
+    if (error) {
+      console.error("Error cargando categorías:", error);
+      return;
+    }
+    setCategorias(data || []);
+  };
+
   useEffect(() => {
     const cargarDatos = async () => {
       await Promise.all([
@@ -97,6 +107,7 @@ export function StoreProvider({ children }) {
         cargarPedidos(),
         cargarRepartidores(),
         cargarVendedores(),
+        cargarCategorias(),
       ]);
     };
 
@@ -548,6 +559,66 @@ const crearCliente = async (
     updatePedidoItems(pedidoId, items);
     return true;
   };
+
+  // CRUD de Categorías
+  const crearCategoria = async (nombre, descripcion = "") => {
+    if (!nombre || nombre.trim() === "") {
+      return { error: "El nombre de la categoría es requerido" };
+    }
+
+    const { data, error } = await supabase
+      .from("categorias")
+      .insert([{ nombre: nombre.trim(), descripcion }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creando categoría:", error);
+      return { error: error.message };
+    }
+
+    setCategorias((prev) => [...prev, data]);
+    return { success: true, categoria: data };
+  };
+
+  const actualizarCategoria = async (id, nombre, descripcion = "") => {
+    if (!nombre || nombre.trim() === "") {
+      return { error: "El nombre de la categoría es requerido" };
+    }
+
+    const { data, error } = await supabase
+      .from("categorias")
+      .update({ nombre: nombre.trim(), descripcion })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error actualizando categoría:", error);
+      return { error: error.message };
+    }
+
+    setCategorias((prev) =>
+      prev.map((cat) => (cat.id === id ? data : cat))
+    );
+    return { success: true, categoria: data };
+  };
+
+  const eliminarCategoria = async (id) => {
+    const { error } = await supabase
+      .from("categorias")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error eliminando categoría:", error);
+      return { error: error.message };
+    }
+
+    setCategorias((prev) => prev.filter((cat) => cat.id !== id));
+    return { success: true };
+  };
+
 return (
   <StoreContext.Provider
     value={{
@@ -557,6 +628,7 @@ return (
       pedidos,
       repartidores,
       vendedores,
+      categorias,
       crearProducto,
       actualizarStock,
       agotarProducto,
@@ -575,6 +647,9 @@ return (
       agregarItemPedido,
       eliminarItemPedido,
       actualizarCantidadItemPedido,
+      crearCategoria,
+      actualizarCategoria,
+      eliminarCategoria,
     }}
   >
     {children}

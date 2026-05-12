@@ -46,6 +46,10 @@ export default function Sidebar() {
                Productos
             </NavLink>
 
+            <NavLink to="/admin-categorias">
+               📁 Categorías
+            </NavLink>
+
             <NavLink to="/pedidos">
                Pedidos
             </NavLink>
