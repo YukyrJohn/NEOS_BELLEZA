@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useStore } from "../context/StoreContext";
 import "../styles/clientes.css";
 import { supabase } from "../context/supabaseClient";
-import brebImage from "../components/img/breb.jpg";
 
 
 export default function Clientes() {
@@ -53,10 +52,6 @@ export default function Clientes() {
     <div className="clientes-page">
       <h2>Cartera de Clientes</h2>
       <p>Gestión de clientes, sald0s y pagos</p>
-
-      <div className="info-image-container">
-        <img src={brebImage} alt="Información sobre pedidos y gestión de clientes" />
-      </div>
 
       <div className="clientes-contenedor">
         {/* Lista de clientes */}

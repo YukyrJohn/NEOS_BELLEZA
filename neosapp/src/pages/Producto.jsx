@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useStore } from "../context/StoreContext";
 import { useAuth } from "../context/AuthContext";
 import "./producto.css";
+import brebImage from "../components/img/breb.jpg";
 
 const CATEGORIAS = [
   "Pedrería Adhesiva",
@@ -390,6 +391,13 @@ export default function Producto() {
           )}
         </div>
       </div>
+
+      {/* IMAGEN INFORMATIVA PARA CLIENTES */}
+      {!esAdmin() && !esVendedor() && (
+        <div className="info-image-container">
+          <img src={brebImage} alt="Información sobre pedidos y productos" />
+        </div>
+      )}
 
       {/* BUSCADOR Y FILTROS */}
       <div className="productos-filtros">
