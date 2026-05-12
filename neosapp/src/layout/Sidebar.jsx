@@ -9,7 +9,7 @@ export default function Sidebar() {
 
   return (
     <aside className="sidebar">
-      <h2 className="logo">NEOSAPP</h2>
+      <h2 className="logo">NEOS BELLEZA</h2>
 
       <nav>
         {/* Dashboard según tipo de usuario */}
