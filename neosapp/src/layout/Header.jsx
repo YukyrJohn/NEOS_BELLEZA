@@ -23,7 +23,6 @@ export default function Header({ onToggleSidebar, sidebarAbierto }) {
   else if (usuarioAutenticado) tipoUsuario = "Cliente";
 
   const iniciales = usuario?.substring(0, 2).toUpperCase() || "?";
-  const mostrarTitulo = location.pathname === "/login" || location.pathname === "/registro";
 
   const handleLogout = () => {
     logout();
@@ -47,9 +46,10 @@ export default function Header({ onToggleSidebar, sidebarAbierto }) {
   };
 
   const tipoClase = esAdministrador ? "admin" : esVend ? "vendedor" : esRepar ? "repartidor" : usuarioAutenticado ? "cliente" : "invitado";
+  const mostrarTituloHeader = location.pathname === "/login" || location.pathname === "/registro" || !usuarioAutenticado;
 
   return (
-    <header className={`header header-dark ${mostrarTitulo ? "" : "header-no-logo"}`}>
+    <header className={`header header-dark ${mostrarTituloHeader ? "" : "header-no-logo"}`}>
       {onToggleSidebar && (
         <button
           type="button"
@@ -61,14 +61,14 @@ export default function Header({ onToggleSidebar, sidebarAbierto }) {
         </button>
       )}
 
-      {mostrarTitulo && (
+      {mostrarTituloHeader && (
         <div className="header-logo-container">
           <button 
             className="header-logo-main"
             onClick={handleHomeClick}
             title="Ir al inicio"
           >
-            NEOS
+            NEOS BELLEZA
           </button>
           <div className="header-logo-subtitle">
             Distribución de Belleza
