@@ -371,7 +371,7 @@ export default function Producto() {
   return (
     <div className="productos-page">
       <div className="productos-header">
-        <h2>Tienda de Productos</h2>
+        {(esAdmin() || esVendedor()) && <h2>Tienda de Productos</h2>}
         <div>
           {esAdmin() && (
             <button
@@ -397,6 +397,11 @@ export default function Producto() {
         <div className="info-image-container">
           <img src={brebImage} alt="Información sobre pedidos y productos" />
         </div>
+      )}
+
+      {/* TÍTULO PARA CLIENTES */}
+      {!esAdmin() && !esVendedor() && (
+        <h2 className="productos-title">Tienda de Productos</h2>
       )}
 
       {/* BUSCADOR Y FILTROS */}

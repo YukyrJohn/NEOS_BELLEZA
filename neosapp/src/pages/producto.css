@@ -42,6 +42,15 @@
   display: block;
 }
 
+/* TÍTULO DE PRODUCTOS */
+.productos-title {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 600;
+  color: #1e40af;
+  margin-bottom: 24px;
+}
+
 /* BOTÓN PRINCIPAL */
 .btn-primary {
   background: var(--gold);
