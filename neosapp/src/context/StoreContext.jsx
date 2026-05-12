@@ -10,6 +10,7 @@ export function StoreProvider({ children }) {
   const [repartidores, setRepartidores] = useState([]);
   const [vendedores, setVendedores] = useState([]);
   const [categorias, setCategorias] = useState([]);
+  const [cargandoCategorias, setCargandoCategorias] = useState(true);
 
   const DEFAULT_IMAGE =
     "https://images.unsplash.com/photo-1522338242592-cb0acf6f85a2?w=500";
@@ -91,12 +92,18 @@ export function StoreProvider({ children }) {
   };
 
   const cargarCategorias = async () => {
-    const { data, error } = await supabase.from("categorias").select("*");
-    if (error) {
-      console.error("Error cargando categorías:", error);
-      return;
+    setCargandoCategorias(true);
+    try {
+      const { data, error } = await supabase.from("categorias").select("*");
+      if (error) {
+        console.error("Error cargando categorías:", error);
+        setCategorias([]);
+        return;
+      }
+      setCategorias(data || []);
+    } finally {
+      setCargandoCategorias(false);
     }
-    setCategorias(data || []);
   };
 
   useEffect(() => {
@@ -650,6 +657,7 @@ return (
       crearCategoria,
       actualizarCategoria,
       eliminarCategoria,
+      cargandoCategorias,
     }}
   >
     {children}

@@ -5,6 +5,9 @@
 
   --gold: #c8a951;
   --gold-soft: #e6d38b;
+  --primary-color: var(--gold);
+  --primary-color-dark: #a1863d;
+  --border-color: var(--border-soft);
 
   --text-dark: #1c1c1c;
   --text-light: #ffffff;

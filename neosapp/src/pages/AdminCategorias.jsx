@@ -3,7 +3,13 @@ import { useStore } from "../context/StoreContext";
 import "../styles/admin-categorias.css";
 
 export default function AdminCategorias() {
-  const { categorias, crearCategoria, actualizarCategoria, eliminarCategoria } = useStore();
+  const {
+    categorias,
+    crearCategoria,
+    actualizarCategoria,
+    eliminarCategoria,
+    cargandoCategorias,
+  } = useStore();
   const [mostrarForm, setMostrarForm] = useState(false);
   const [editando, setEditando] = useState(null);
   const [nuevoCategoria, setNuevaCategoria] = useState({
@@ -142,7 +148,9 @@ export default function AdminCategorias() {
 
       {/* Lista de categorías */}
       <div className="categorias-container">
-        {categorias.length === 0 ? (
+        {cargandoCategorias ? (
+          <p className="sin-datos">Cargando categorías...</p>
+        ) : categorias.length === 0 ? (
           <p className="sin-datos">No hay categorías registradas</p>
         ) : (
           <div className="categorias-grid">
