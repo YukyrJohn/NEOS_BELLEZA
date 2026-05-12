@@ -47,7 +47,8 @@
   text-align: center;
   font-size: 28px;
   font-weight: 600;
-  color: #1e40af;
+  font-family: inherit;
+  color: #000;
   margin-bottom: 24px;
 }
 
