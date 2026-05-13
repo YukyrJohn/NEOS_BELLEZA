@@ -15,15 +15,16 @@ export function StoreProvider({ children }) {
   const DEFAULT_IMAGE =
     "https://images.unsplash.com/photo-1522338242592-cb0acf6f85a2?w=500";
 
-  const adaptarProducto = (p) => ({
-    id: p.id ?? p.identificacion,
-    nombre: p.nombre,
-    precio: p.precio,
-    stock: p.stock ?? p.existencias ?? 0,
-    descripcion: p.descripcion,
-    categoria: p.categoria ?? p.categorias ?? "",
-    imagenes: [p.imagen_url || p.imagenes?.[0] || DEFAULT_IMAGE],
-  });
+const adaptarProducto = (p) => ({
+  id: p.id ?? p.identificacion,
+  nombre: p.nombre,
+  precio: p.precio,
+  stock: p.stock ?? p.existencias ?? 0,
+  descripcion: p.descripcion,
+  categoria_id: p.categoria_id,
+  categorias: p.categorias ?? null,
+  imagenes: [p.imagen_url || p.imagenes?.[0] || DEFAULT_IMAGE],
+});
 
   const adaptarPedido = (p) => ({
     id: p.id,
@@ -40,14 +41,24 @@ export function StoreProvider({ children }) {
     repartidor: p.repartidor ?? "",
   });
 
-  const cargarProductos = async () => {
-    const { data, error } = await supabase.from("productos").select("*");
-    if (error) {
-      console.error("Error cargando productos:", error);
-      return;
-    }
-    setProductos((data || []).map(adaptarProducto));
-  };
+const cargarProductos = async () => {
+  const { data, error } = await supabase
+    .from("productos")
+    .select(`
+      *,
+      categorias (
+        id,
+        nombre
+      )
+    `);
+
+  if (error) {
+    console.error("Error cargando productos:", error);
+    return;
+  }
+
+  setProductos((data || []).map(adaptarProducto));
+};
 
   const cargarClientes = async () => {
     const { data, error } = await supabase.from("clientes").select("*");
@@ -133,20 +144,34 @@ export function StoreProvider({ children }) {
       return { error: "Nombre, precio y categoría son requeridos" };
     }
 
-    const { data, error } = await supabase
-      .from("productos")
-      .insert([
-        {
-          nombre,
-          precio: Number(precio),
-          stock: Number(stock),
-          descripcion,
-          categoria,
-          imagen_url: imagenes[0] || null,
-        },
-      ])
-      .select()
-      .single();
+const categoriaEncontrada = categorias.find(
+  (c) => c.nombre === categoria
+);
+
+if (!categoriaEncontrada) {
+  return { error: "Categoría no encontrada" };
+}
+
+const { data, error } = await supabase
+  .from("productos")
+  .insert([
+    {
+      nombre,
+      precio: Number(precio),
+      stock: Number(stock),
+      descripcion,
+      categoria_id: categoriaEncontrada.id,
+      imagen_url: imagenes[0] || null,
+    },
+  ])
+  .select(`
+    *,
+    categorias (
+      id,
+      nombre
+    )
+  `)
+  .single();
 
     if (error) {
       console.error("Error creando producto:", error);

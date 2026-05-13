@@ -5,19 +5,17 @@ import "./producto.css";
 import brebImage from "../components/img/breb.jpg";
 
 const CATEGORIAS = [
-  "Pedrería Adhesiva",
-  "Tratamientos",
+  "Accesorios",
   "Cabello",
+  "Cejas y Pestañas",
+  "Cuerpo",
+  "Esmaltes",
   "Halloween",
   "Maquillaje",
+  "Pedrería Adhesiva",
   "S. Shop",
-  "Cuerpo",
-  "Cejas y Pestañas",
-  "Uñas y Limas",
-  "Rostro",
-  "Barberia",
-  "Manos y Pies",
-  "Vaselina/Cacao"
+  "Tratamientos",
+  "Uñas y Limas"
 ];
 
 const FORMAS_PAGO = ["Efectivo", "Crédito", "Abono"];
@@ -294,31 +292,31 @@ export default function Producto() {
   };
 
   // Obtener categorías a mostrar basado en filtros
-  const obtenerCategoriasConProductos = () => {
-    let categoriasAMostrar = CATEGORIAS;
-    
-    // Si se filtra por categoría, solo mostrar esa
-    if (categoriaSeleccionada !== "Todas") {
-      categoriasAMostrar = [categoriaSeleccionada];
-    }
+const obtenerCategoriasConProductos = () => {
+  let categoriasAMostrar = CATEGORIAS;
+  
+  // Si se filtra por categoría, solo mostrar esa
+  if (categoriaSeleccionada !== "Todas") {
+    categoriasAMostrar = [categoriaSeleccionada];
+  }
 
-    // Filtrar solo categorías que tienen productos que coinciden con la búsqueda
-    return categoriasAMostrar.filter(categoria => {
-      return productos.some(p => {
-        const coincideCategoria = p.categoria === categoria;
-        const coincideBusqueda = p.nombre.toLowerCase().includes(busquedaProducto.toLowerCase());
-        return coincideCategoria && coincideBusqueda;
-      });
+  // Filtrar solo categorías que tienen productos que coinciden con la búsqueda
+  return categoriasAMostrar.filter(categoria => {
+    return productos.some(p => {
+      const coincideCategoria = p.categorias?.nombre === categoria;
+      const coincideBusqueda = p.nombre.toLowerCase().includes(busquedaProducto.toLowerCase());
+      return coincideCategoria && coincideBusqueda;
     });
-  };
+  });
+};
 
   // Obtener productos filtrados por categoría y búsqueda
-  const obtenerProductosFiltrados = (categoria) => {
-    return productos.filter(p => 
-      p.categoria === categoria && 
-      p.nombre.toLowerCase().includes(busquedaProducto.toLowerCase())
-    );
-  };
+const obtenerProductosFiltrados = (categoria) => {
+  return productos.filter(p => 
+    p.categorias?.nombre === categoria && 
+    p.nombre.toLowerCase().includes(busquedaProducto.toLowerCase())
+  );
+};
 
   const seleccionarCliente = (cliente) => {
     setClienteSeleccionado(cliente);
@@ -812,7 +810,7 @@ export default function Producto() {
                 <h2>{productoDetalles.nombre}</h2>
                 
                 <div className="detalles-categoria">
-                  <span className="badge-categoria">{productoDetalles.categoria}</span>
+                  <span className="badge-categoria">{productoDetalles.categorias?.nombre}</span>
                 </div>
 
                 <p className="detalles-descripcion">
