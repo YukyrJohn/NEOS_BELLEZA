@@ -1,10 +1,10 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useStore } from "../context/StoreContext";
 import { useAuth } from "../context/AuthContext";
 import "./producto.css";
 import brebImage from "../components/img/breb.jpg";
 
-const CATEGORIAS = [
+const CATEGORIAS_POR_DEFECTO = [
   "Accesorios",
   "Cabello",
   "Cejas y Pestañas",
@@ -21,9 +21,25 @@ const CATEGORIAS = [
 const FORMAS_PAGO = ["Efectivo", "Crédito", "Abono"];
 
 export default function Producto() {
-  const { productos, setProductos, crearProducto, actualizarStock, agotarProducto, crearPedido, clientes } = useStore();
+  const { productos, categorias, setProductos, crearProducto, actualizarStock, agotarProducto, crearPedido, clientes } = useStore();
   const { esAdmin, esVendedor, obtenerDatosUsuario } = useAuth();
   const vendedorData = obtenerDatosUsuario();
+
+  const obtenerCategoriaProducto = (producto) =>
+    producto.categorias?.nombre ||
+    producto.categoria ||
+    categorias.find((c) => c.id === producto.categoria_id)?.nombre ||
+    "Sin categoría";
+
+  const categoriasDisponibles = useMemo(() => {
+    if (categorias.length > 0) {
+      return categorias.map((c) => c.nombre);
+    }
+
+    return Array.from(
+      new Set(productos.map((producto) => obtenerCategoriaProducto(producto)))
+    ).filter(Boolean);
+  }, [categorias, productos]);
   
   // Referencias para los scrolls horizontales
   const scrollRefs = useRef({});
@@ -35,7 +51,7 @@ export default function Producto() {
   const [nuevo, setNuevo] = useState({
     nombre: "",
     precio: "",
-    categoria: CATEGORIAS[0],
+    categoria: CATEGORIAS_POR_DEFECTO[0],
     stock: "",
     descripcion: "",
     imagenes: [],
@@ -70,27 +86,27 @@ export default function Producto() {
     formaPago: FORMAS_PAGO[0],
   });
 //
-  const crearProductoHandler = () => {
+  const crearProductoHandler = async () => {
     if (!nuevo.nombre || !nuevo.precio || !nuevo.stock) {
       alert("Por favor completa nombre, precio y stock");
       return;
     }
 
-    const resultado = crearProducto(
-      nuevo.nombre, 
-      nuevo.precio, 
-      nuevo.categoria, 
+    const resultado = await crearProducto(
+      nuevo.nombre,
+      nuevo.precio,
+      nuevo.categoria,
       nuevo.stock,
       nuevo.descripcion,
       nuevo.imagenes.length > 0 ? nuevo.imagenes : []
     );
-//
+
     if (resultado.error) {
       alert(`Error: ${resultado.error}`);
       return;
     }
 
-    setNuevo({ nombre: "", precio: "", categoria: CATEGORIAS[0], stock: "", descripcion: "", imagenes: [] });
+    setNuevo({ nombre: "", precio: "", categoria: CATEGORIAS_POR_DEFECTO[0], stock: "", descripcion: "", imagenes: [] });
     setImagenesVista([]);
     setMostrarModal(false);
     alert("✅ Producto creado exitosamente");
@@ -293,17 +309,16 @@ export default function Producto() {
 
   // Obtener categorías a mostrar basado en filtros
 const obtenerCategoriasConProductos = () => {
-  let categoriasAMostrar = CATEGORIAS;
-  
-  // Si se filtra por categoría, solo mostrar esa
+  let categoriasAMostrar = categoriasDisponibles;
+
   if (categoriaSeleccionada !== "Todas") {
     categoriasAMostrar = [categoriaSeleccionada];
   }
 
-  // Filtrar solo categorías que tienen productos que coinciden con la búsqueda
-  return categoriasAMostrar.filter(categoria => {
-    return productos.some(p => {
-      const coincideCategoria = p.categorias?.nombre === categoria;
+  return categoriasAMostrar.filter((categoria) => {
+    return productos.some((p) => {
+      const categoriaProducto = obtenerCategoriaProducto(p);
+      const coincideCategoria = categoriaProducto === categoria;
       const coincideBusqueda = p.nombre.toLowerCase().includes(busquedaProducto.toLowerCase());
       return coincideCategoria && coincideBusqueda;
     });
@@ -312,10 +327,13 @@ const obtenerCategoriasConProductos = () => {
 
   // Obtener productos filtrados por categoría y búsqueda
 const obtenerProductosFiltrados = (categoria) => {
-  return productos.filter(p => 
-    p.categorias?.nombre === categoria && 
-    p.nombre.toLowerCase().includes(busquedaProducto.toLowerCase())
-  );
+  return productos.filter((p) => {
+    const categoriaProducto = obtenerCategoriaProducto(p);
+    return (
+      categoriaProducto === categoria &&
+      p.nombre.toLowerCase().includes(busquedaProducto.toLowerCase())
+    );
+  });
 };
 
   const seleccionarCliente = (cliente) => {
@@ -421,7 +439,7 @@ const obtenerProductosFiltrados = (categoria) => {
           >
             Todas
           </button>
-          {CATEGORIAS.map((categoria) => (
+          {(categorias.length > 0 ? categorias.map((c) => c.nombre) : CATEGORIAS_POR_DEFECTO).map((categoria) => (
             <button
               key={categoria}
               className={`categoria-btn ${categoriaSeleccionada === categoria ? "activa" : ""}`}
@@ -672,7 +690,7 @@ const obtenerProductosFiltrados = (categoria) => {
                 setNuevo({ ...nuevo, categoria: e.target.value })
               }
             >
-              {CATEGORIAS.map((c) => (
+              {(categorias.length > 0 ? categorias.map((c) => c.nombre) : CATEGORIAS_POR_DEFECTO).map((c) => (
                 <option key={c}>{c}</option>
               ))}
             </select>
@@ -710,7 +728,7 @@ const obtenerProductosFiltrados = (categoria) => {
             <div className="modal-actions">
               <button onClick={() => {
                 setMostrarModal(false);
-                setNuevo({ nombre: "", precio: "", categoria: CATEGORIAS[0], stock: "", descripcion: "", imagenes: [] });
+                setNuevo({ nombre: "", precio: "", categoria: CATEGORIAS_POR_DEFECTO[0], stock: "", descripcion: "", imagenes: [] });
                 setImagenesVista([]);
               }}>
                 Cancelar
@@ -810,7 +828,7 @@ const obtenerProductosFiltrados = (categoria) => {
                 <h2>{productoDetalles.nombre}</h2>
                 
                 <div className="detalles-categoria">
-                  <span className="badge-categoria">{productoDetalles.categorias?.nombre}</span>
+                  <span className="badge-categoria">{obtenerCategoriaProducto(productoDetalles)}</span>
                 </div>
 
                 <p className="detalles-descripcion">

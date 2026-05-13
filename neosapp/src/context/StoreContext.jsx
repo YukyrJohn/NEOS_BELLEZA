@@ -22,11 +22,13 @@ const adaptarProducto = (p) => ({
   stock: p.stock ?? p.existencias ?? 0,
   descripcion: p.descripcion,
   categoria_id: p.categoria_id,
+  categoria: p.categorias?.nombre || p.categoria || "",
   categorias: p.categorias ?? null,
   imagenes: [p.imagen_url || p.imagenes?.[0] || DEFAULT_IMAGE],
 });
 
   const adaptarPedido = (p) => ({
+
     id: p.id,
     cliente: p.nombre ?? p.cliente,
     clienteCedula: p.cedula,
@@ -42,15 +44,7 @@ const adaptarProducto = (p) => ({
   });
 
 const cargarProductos = async () => {
-  const { data, error } = await supabase
-    .from("productos")
-    .select(`
-      *,
-      categorias (
-        id,
-        nombre
-      )
-    `);
+  const { data, error } = await supabase.from("productos").select("*");
 
   if (error) {
     console.error("Error cargando productos:", error);
@@ -61,6 +55,7 @@ const cargarProductos = async () => {
 };
 
   const cargarClientes = async () => {
+
     const { data, error } = await supabase.from("clientes").select("*");
     if (error) {
       console.error("Error cargando clientes:", error);
@@ -164,13 +159,7 @@ const { data, error } = await supabase
       imagen_url: imagenes[0] || null,
     },
   ])
-  .select(`
-    *,
-    categorias (
-      id,
-      nombre
-    )
-  `)
+  .select("*")
   .single();
 
     if (error) {
