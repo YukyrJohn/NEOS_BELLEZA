@@ -55,7 +55,7 @@ export default function AdminClientes() {
   return (
     <div className="admin-clientes-page">
       <div className="admin-header">
-        <h2>Admistrar clientes</h2>
+        <h2>Administrar clientes</h2>
         <button className="btn-crear" onClick={() => setMostrarForm(!mostrarForm)}>
           {mostrarForm ? "✕ Cancelar" : "+ Crear Cliente"}
         </button>
