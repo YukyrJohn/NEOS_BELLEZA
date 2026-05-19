@@ -65,47 +65,75 @@ const cargarProductos = async () => {
       return;
     }
 
+    console.log("Clientes cargados desde Supabase:", data);
+
     setClientes(
-      (data || []).map((cliente) => ({
-        id: cliente.id,
-        cedula: cliente.cedula ?? cliente.cedula_cliente ?? cliente.Cedula ?? cliente.CI ?? cliente.ci,
-        nombre: cliente.nombre ?? cliente.Nombre ?? cliente.name ?? cliente.nombre_cliente,
-        direccion:
-          cliente.direccion ??
-          cliente.dirección ??
-          cliente.Direccion ??
-          cliente.dirección_cliente ??
-          cliente.address ??
-          "",
-        telefono:
-          cliente.telefono ??
-          cliente.telefono_cliente ??
-          cliente.Telefono ??
-          cliente.phone ??
-          "",
-        correo:
-          cliente.correo ??
-          cliente.email ??
-          cliente.Email ??
-          cliente.correo_cliente ??
-          "",
-        saldo: cliente.saldo ?? cliente.balance ?? 0,
-        transacciones: cliente.transacciones ?? cliente.transactions ?? [],
-        vendedor_id:
-          cliente.vendedor_id ??
-          cliente["vendedor id"] ??
-          cliente.vendedorId ??
-          cliente.Vendedor_id ??
-          cliente.vendedor ??
-          null,
-        usuario_id:
-          cliente.usuario_id ??
+      (data || []).map((cliente) => {
+        const clienteId =
+          cliente.id ??
+          cliente.cliente_id ??
+          cliente.Cliente_id ??
+          cliente.clienteId ??
           cliente.Usuario_id ??
+          cliente.usuario_id ??
           cliente.usuarioId ??
           cliente.user_id ??
           cliente.userId ??
-          null,
-      }))
+          null;
+
+        return {
+          ...cliente,
+          id: clienteId,
+          cedula:
+            cliente.cedula ??
+            cliente.cedula_cliente ??
+            cliente.Cedula ??
+            cliente.CI ??
+            cliente.ci ??
+            "",
+          nombre:
+            cliente.nombre ??
+            cliente.Nombre ??
+            cliente.name ??
+            cliente.nombre_cliente ??
+            "Cliente",
+          direccion:
+            cliente.direccion ??
+            cliente.dirección ??
+            cliente.Direccion ??
+            cliente.dirección_cliente ??
+            cliente.address ??
+            "",
+          telefono:
+            cliente.telefono ??
+            cliente.telefono_cliente ??
+            cliente.Telefono ??
+            cliente.phone ??
+            "",
+          correo:
+            cliente.correo ??
+            cliente.email ??
+            cliente.Email ??
+            cliente.correo_cliente ??
+            "",
+          saldo: cliente.saldo ?? cliente.balance ?? 0,
+          transacciones: cliente.transacciones ?? cliente.transactions ?? [],
+          vendedor_id:
+            cliente.vendedor_id ??
+            cliente["vendedor id"] ??
+            cliente.vendedorId ??
+            cliente.Vendedor_id ??
+            cliente.vendedor ??
+            null,
+          usuario_id:
+            cliente.usuario_id ??
+            cliente.Usuario_id ??
+            cliente.usuarioId ??
+            cliente.user_id ??
+            cliente.userId ??
+            null,
+        };
+      })
     );
   };
 
