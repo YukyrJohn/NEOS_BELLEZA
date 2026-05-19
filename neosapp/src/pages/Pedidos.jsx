@@ -247,13 +247,17 @@ export default function Pedidos() {
                 ) : (
                   <div className="pedido-items">
                     <h5>Productos:</h5>
-                    {modalPedido.items.map((item, index) => (
-                      <div key={index} className="pedido-item">
-                        <span>{item.nombre}</span>
-                        <span>x{item.cantidad}</span>
-                        <span className="price">${(item.precio * item.cantidad).toLocaleString()}</span>
-                      </div>
-                    ))}
+                    {modalPedido.items?.length > 0 ? (
+                      modalPedido.items.map((item, index) => (
+                        <div key={index} className="pedido-item">
+                          <span>{item.nombre}</span>
+                          <span>x{item.cantidad}</span>
+                          <span className="price">${(item.precio * item.cantidad).toLocaleString()}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="sin-productos">No hay productos registrados en este pedido.</p>
+                    )}
                   </div>
                 )}
 

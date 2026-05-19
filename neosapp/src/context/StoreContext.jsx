@@ -29,7 +29,7 @@ const adaptarProducto = (p) => ({
   imagenes: [p.imagen_url || p.imagenes?.[0] || DEFAULT_IMAGE],
 });
 
-  const adaptarPedido = (p) => ({
+  const adaptarPedido = (p, items = []) => ({
 
     id: p.id,
     cliente: p.nombre ?? p.cliente,
@@ -39,7 +39,7 @@ const adaptarProducto = (p) => ({
       p.fecha ||
       (p.created_at ? new Date(p.created_at).toLocaleDateString("es-CO") : ""),
     formaPago: p.forma_pago ?? p.formaPago ?? "",
-    items: p.items ?? [],
+    items,
     total: p.total ?? p.totalPedido ?? 0,
     estado: p.estado ?? "Pendiente",
     repartidor: p.repartidor ?? "",
@@ -78,7 +78,50 @@ const cargarProductos = async () => {
       console.error("Error cargando pedidos:", error);
       return;
     }
-    setPedidos((data || []).map(adaptarPedido));
+
+    const pedidosData = data || [];
+    const pedidoIds = pedidosData
+      .map((pedido) => pedido.id)
+      .filter((id) => id != null);
+
+    let detalleData = [];
+    if (pedidoIds.length > 0) {
+      const { data: detalles, error: detalleError } = await supabase
+        .from("pedido_detalle")
+        .select("*")
+        .in("pedido_id", pedidoIds);
+
+      if (detalleError) {
+        console.error("Error cargando detalles de pedidos:", detalleError);
+      } else {
+        detalleData = detalles || [];
+      }
+    }
+
+    const detallesPorPedido = detalleData.reduce((acc, detalle) => {
+      const producto = productos.find((prod) => prod.id === detalle.producto_id);
+      const item = {
+        id: detalle.producto_id,
+        nombre:
+          detalle.nombre ||
+          producto?.nombre ||
+          `Producto #${detalle.producto_id}`,
+        precio: Number(detalle.precio ?? producto?.precio ?? 0),
+        cantidad: Number(detalle.cantidad ?? 1),
+      };
+
+      acc[detalle.pedido_id] = [...(acc[detalle.pedido_id] || []), item];
+      return acc;
+    }, {});
+
+    setPedidos(
+      pedidosData.map((pedido) =>
+        adaptarPedido(
+          pedido,
+          detallesPorPedido[pedido.id] || pedido.items || []
+        )
+      )
+    );
   };
 
   const cargarRepartidores = async () => {
@@ -116,8 +159,8 @@ const cargarProductos = async () => {
 
   useEffect(() => {
     const cargarDatos = async () => {
+      await cargarProductos();
       await Promise.all([
-        cargarProductos(),
         cargarClientes(),
         cargarPedidos(),
         cargarRepartidores(),
