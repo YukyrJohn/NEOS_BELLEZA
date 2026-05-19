@@ -50,10 +50,12 @@ const cargarProductos = async () => {
 
   if (error) {
     console.error("Error cargando productos:", error);
-    return;
+    return [];
   }
 
-  setProductos((data || []).map(adaptarProducto));
+  const adaptados = (data || []).map(adaptarProducto);
+  setProductos(adaptados);
+  return adaptados;
 };
 
   const cargarClientes = async () => {
@@ -72,7 +74,7 @@ const cargarProductos = async () => {
     );
   };
 
-  const cargarPedidos = async () => {
+  const cargarPedidos = async (productosCargados = []) => {
     const { data, error } = await supabase.from("pedidos").select("*");
     if (error) {
       console.error("Error cargando pedidos:", error);
@@ -107,7 +109,7 @@ const cargarProductos = async () => {
         detalle.productoId ??
         detalle.ProductoId;
 
-      const producto = productos.find(
+      const producto = (productosCargados.length > 0 ? productosCargados : productos).find(
         (prod) => String(prod.id) === String(productoId)
       );
 
@@ -175,10 +177,10 @@ const cargarProductos = async () => {
 
   useEffect(() => {
     const cargarDatos = async () => {
-      await cargarProductos();
+      const productosCargados = await cargarProductos();
       await Promise.all([
         cargarClientes(),
-        cargarPedidos(),
+        cargarPedidos(productosCargados),
         cargarRepartidores(),
         cargarVendedores(),
         cargarCategorias(),
