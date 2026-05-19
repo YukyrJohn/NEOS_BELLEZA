@@ -19,6 +19,7 @@ export default function Pedidos() {
   const [pedidoTemp, setPedidoTemp] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
   const [modalPedido, setModalPedido] = useState(null);
+  const [imagenModal, setImagenModal] = useState(null);
 
   const abrirEdicion = (pedido) => {
     setPedidoExpandido(pedido.id);
@@ -249,9 +250,25 @@ export default function Pedidos() {
                     <h5>Productos:</h5>
                     {modalPedido.items?.length > 0 ? (
                       modalPedido.items.map((item, index) => (
-                        <div key={index} className="pedido-item">
-                          <span>{item.nombre}</span>
-                          <span>x{item.cantidad}</span>
+                        <div key={index} className="pedido-item pedido-item-detalle">
+                          <button
+                            type="button"
+                            className="producto-miniatura"
+                            onClick={() => item.imagen && setImagenModal(item.imagen)}
+                            title={item.imagen ? "Ver imagen ampliada" : "Sin imagen disponible"}
+                          >
+                            {item.imagen ? (
+                              <img src={item.imagen} alt={item.nombre} />
+                            ) : (
+                              <div className="imagen-placeholder">?</div>
+                            )}
+                          </button>
+
+                          <div className="producto-detalle-texto">
+                            <span className="producto-nombre">{item.nombre}</span>
+                            <span className="producto-cantidad">x{item.cantidad}</span>
+                          </div>
+
                           <span className="price">${(item.precio * item.cantidad).toLocaleString()}</span>
                         </div>
                       ))
@@ -262,6 +279,22 @@ export default function Pedidos() {
                 )}
 
                 <p className="pedido-total"><strong>Total:</strong> ${modalPedido.total.toLocaleString()}</p>
+
+                {imagenModal && (
+                  <div className="image-preview-overlay" onClick={() => setImagenModal(null)}>
+                    <div className="image-preview-content" onClick={(e) => e.stopPropagation()}>
+                      <img src={imagenModal} alt="Imagen del producto" />
+                      <button
+                        type="button"
+                        className="btn-cerrar-modal image-preview-close"
+                        onClick={() => setImagenModal(null)}
+                        aria-label="Cerrar vista de imagen"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {pedidoExpandido === modalPedido.id && (
                   <div className="pedido-acciones">

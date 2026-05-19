@@ -114,11 +114,16 @@ const cargarProductos = async () => {
       const item = {
         id: productoId,
         nombre:
-          detalle.nombre ||
           producto?.nombre ||
+          detalle.nombre ||
           `Producto #${productoId}`,
         precio: Number(detalle.precio ?? detalle.Precio ?? producto?.precio ?? 0),
         cantidad: Number(detalle.cantidad ?? detalle.Cantidad ?? 1),
+        imagen:
+          producto?.imagenes?.[0] ||
+          detalle.imagen ||
+          detalle.imagen_url ||
+          "",
       };
 
       acc[pedidoId] = [...(acc[pedidoId] || []), item];
