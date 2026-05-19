@@ -290,15 +290,15 @@ const cargarProductos = async () => {
       return { error: "Nombre, precio y categoría son requeridos" };
     }
 
-const categoriaEncontrada = categorias.find(
-  (c) => c.nombre === categoria
-);
+    const categoriaEncontrada = categorias.find(
+      (c) => c.nombre === categoria
+    );
 
-if (!categoriaEncontrada) {
-  return { error: "Categoría no encontrada" };
-}
+    if (!categoriaEncontrada) {
+      return { error: "Categoría no encontrada" };
+    }
 
-const productoInsert = {
+    const productoInsert = {
       nombre,
       precio: Number(precio),
       stock: Number(stock),
@@ -307,22 +307,25 @@ const productoInsert = {
     };
 
     if (imagenes.length > 0) {
-      productoInsert.imagenes = imagenes;
       productoInsert.imagen_url = imagenes[0];
     }
 
     const { data, error } = await supabase
       .from("productos")
       .insert([productoInsert])
-  .select("*")
-  .single();
+      .select("*")
+      .single();
 
     if (error) {
       console.error("Error creando producto:", error);
       return { error: error.message };
     }
 
-    const nuevoProducto = adaptarProducto(data);
+    let nuevoProducto = adaptarProducto(data);
+    if (imagenes.length > 0) {
+      nuevoProducto = { ...nuevoProducto, imagenes };
+    }
+
     setProductos((prev) => [...prev, nuevoProducto]);
     return { success: true, producto: nuevoProducto };
   };
@@ -361,11 +364,8 @@ const productoInsert = {
     if (datos.precio != null) datosActualizacion.precio = Number(datos.precio);
     if (datos.stock != null) datosActualizacion.stock = Number(datos.stock);
     if (datos.descripcion != null) datosActualizacion.descripcion = datos.descripcion;
-    if (datos.imagenes != null) {
-      datosActualizacion.imagenes = datos.imagenes;
-      if (datos.imagenes.length > 0) {
-        datosActualizacion.imagen_url = datos.imagenes[0];
-      }
+    if (datos.imagenes != null && datos.imagenes.length > 0) {
+      datosActualizacion.imagen_url = datos.imagenes[0];
     }
 
     const { data, error } = await supabase
@@ -380,7 +380,14 @@ const productoInsert = {
       return { error: error.message };
     }
 
-    const productoActualizado = adaptarProducto(data);
+    let productoActualizado = adaptarProducto(data);
+    if (datos.imagenes != null && datos.imagenes.length > 0) {
+      productoActualizado = {
+        ...productoActualizado,
+        imagenes: datos.imagenes,
+      };
+    }
+
     setProductos((prev) =>
       prev.map((p) => (p.id === productoId ? productoActualizado : p))
     );
