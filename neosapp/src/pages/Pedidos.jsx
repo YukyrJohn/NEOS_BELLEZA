@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useStore } from "../context/StoreContext";
 import "../styles/pedidos.css";
 
@@ -19,6 +19,16 @@ export default function Pedidos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [modalPedido, setModalPedido] = useState(null);
   const [imagenModal, setImagenModal] = useState(null);
+
+  useEffect(() => {
+    if (imagenModal) {
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = "";
+      };
+    }
+    return undefined;
+  }, [imagenModal]);
 
   const abrirEdicion = (pedido) => {
     setPedidoExpandido(pedido.id);
@@ -286,22 +296,6 @@ export default function Pedidos() {
 
                 <p className="pedido-total"><strong>Total:</strong> ${modalPedido.total.toLocaleString()}</p>
 
-                {imagenModal && (
-                  <div className="image-preview-overlay" onClick={() => setImagenModal(null)}>
-                    <div className="image-preview-content" onClick={(e) => e.stopPropagation()}>
-                      <img src={imagenModal} alt="Imagen del producto" />
-                      <button
-                        type="button"
-                        className="btn-cerrar-modal image-preview-close"
-                        onClick={() => setImagenModal(null)}
-                        aria-label="Cerrar vista de imagen"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                )}
-
                 {pedidoExpandido === modalPedido.id && (
                   <div className="pedido-acciones">
                     <div className="control">
@@ -339,6 +333,22 @@ export default function Pedidos() {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {imagenModal && (
+        <div className="image-preview-overlay" onClick={() => setImagenModal(null)}>
+          <div className="image-preview-content" onClick={(e) => e.stopPropagation()}>
+            <img src={imagenModal} alt="Imagen del producto" />
+            <button
+              type="button"
+              className="btn-cerrar-modal image-preview-close"
+              onClick={() => setImagenModal(null)}
+              aria-label="Cerrar vista de imagen"
+            >
+              ✕
+            </button>
           </div>
         </div>
       )}
