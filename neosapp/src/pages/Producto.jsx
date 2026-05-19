@@ -21,7 +21,7 @@ const CATEGORIAS_POR_DEFECTO = [
 const FORMAS_PAGO = ["Efectivo", "Crédito", "Abono"];
 
 export default function Producto() {
-  const { productos, categorias, setProductos, crearProducto, actualizarStock, agotarProducto, crearPedido, clientes } = useStore();
+  const { productos, categorias, setProductos, crearProducto, actualizarProducto, crearPedido, clientes } = useStore();
   const { esAdmin, esVendedor, obtenerDatosUsuario } = useAuth();
   const vendedorData = obtenerDatosUsuario();
 
@@ -67,7 +67,13 @@ export default function Producto() {
   // Estados para actualizar stock
   const [mostrarModalStock, setMostrarModalStock] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
-  const [nuevoStock, setNuevoStock] = useState("");
+  const [productoEdicion, setProductoEdicion] = useState({
+    nombre: "",
+    precio: "",
+    stock: "",
+    descripcion: "",
+    imagenes: [],
+  });
 
   // Estados para el carrito
   const [carrito, setCarrito] = useState([]);
@@ -144,6 +150,35 @@ export default function Producto() {
     setImagenesVista((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleImagenSeleccionadaEdicion = (e) => {
+    const archivos = Array.from(e.target.files);
+    const maxImagenes = 5;
+
+    if (archivos.length + productoEdicion.imagenes.length > maxImagenes) {
+      alert(`Máximo ${maxImagenes} imágenes permitidas`);
+      return;
+    }
+
+    archivos.forEach((archivo) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const imagenBase64 = event.target.result;
+        setProductoEdicion((prev) => ({
+          ...prev,
+          imagenes: [...prev.imagenes, imagenBase64],
+        }));
+      };
+      reader.readAsDataURL(archivo);
+    });
+  };
+
+  const eliminarImagenEdicion = (index) => {
+    setProductoEdicion((prev) => ({
+      ...prev,
+      imagenes: prev.imagenes.filter((_, i) => i !== index),
+    }));
+  };
+
   const abrirDetalles = (producto) => {
     setProductoDetalles(producto);
     setIndiceCarrusel(0);
@@ -217,28 +252,37 @@ export default function Producto() {
 
   const abrirModalStock = (producto) => {
     setProductoSeleccionado(producto);
-    setNuevoStock(producto.stock.toString());
+    setProductoEdicion({
+      nombre: producto.nombre || "",
+      precio: producto.precio || "",
+      stock: producto.stock != null ? producto.stock.toString() : "",
+      descripcion: producto.descripcion || "",
+      imagenes: producto.imagenes ? [...producto.imagenes] : [],
+    });
     setMostrarModalStock(true);
   };
 
-  const actualizarStockHandler = () => {
-    if (!nuevoStock) return;
-
-    const cantidad = Number(nuevoStock) - productoSeleccionado.stock;
-    if (cantidad === 0) {
-      alert("El stock es igual al actual");
-      setMostrarModalStock(false);
+  const actualizarStockHandler = async () => {
+    if (!productoEdicion.nombre || !productoEdicion.precio || productoEdicion.stock === "") {
+      alert("Por favor completa nombre, precio y stock");
       return;
     }
 
-    const resultado = actualizarStock(productoSeleccionado.id, cantidad);
-    if (resultado) {
-      alert(`✅ Stock actualizado a ${nuevoStock} unidades`);
-      setMostrarModalStock(false);
-      setNuevoStock("");
-    } else {
-      alert("❌ No se puede establecer un stock negativo");
+    const resultado = await actualizarProducto(productoSeleccionado.id, {
+      nombre: productoEdicion.nombre,
+      precio: Number(productoEdicion.precio),
+      stock: Number(productoEdicion.stock),
+      descripcion: productoEdicion.descripcion,
+      imagenes: productoEdicion.imagenes,
+    });
+
+    if (resultado.error) {
+      alert(`Error: ${resultado.error}`);
+      return;
     }
+
+    alert(`✅ Producto actualizado correctamente`);
+    setMostrarModalStock(false);
   };
 
   const agregarAlCarrito = (producto) => {
@@ -744,21 +788,80 @@ const obtenerProductosFiltrados = (categoria) => {
         </div>
       )}
 
-      {/* Modal para actualizar stock */}
+      {/* Modal para actualizar stock y detalles del producto */}
       {mostrarModalStock && productoSeleccionado && esAdmin() && (
         <div className="modal-overlay">
           <div className="modal">
-            <h3>Actualizar Stock</h3>
+            <h3>Editar producto</h3>
             <p><strong>{productoSeleccionado.nombre}</strong></p>
             <p>Stock actual: <strong>{productoSeleccionado.stock}</strong> unidades</p>
 
             <input
+              placeholder="Nombre"
+              value={productoEdicion.nombre}
+              onChange={(e) =>
+                setProductoEdicion({ ...productoEdicion, nombre: e.target.value })
+              }
+            />
+
+            <input
               type="number"
-              placeholder="Nuevo stock"
-              value={nuevoStock}
-              onChange={(e) => setNuevoStock(e.target.value)}
+              placeholder="Precio"
+              value={productoEdicion.precio}
+              onChange={(e) =>
+                setProductoEdicion({ ...productoEdicion, precio: e.target.value })
+              }
               min="0"
             />
+
+            <input
+              type="number"
+              placeholder="Stock"
+              value={productoEdicion.stock}
+              onChange={(e) =>
+                setProductoEdicion({ ...productoEdicion, stock: e.target.value })
+              }
+              min="0"
+            />
+
+            <textarea
+              placeholder="Descripción"
+              value={productoEdicion.descripcion}
+              onChange={(e) =>
+                setProductoEdicion({ ...productoEdicion, descripcion: e.target.value })
+              }
+              rows="3"
+              style={{ fontFamily: "inherit", resize: "vertical" }}
+            />
+
+            <div className="seccion-imagenes">
+              <label className="etiqueta-imagenes">Imágenes del producto (máximo 5):</label>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleImagenSeleccionadaEdicion}
+                className="input-imagenes"
+              />
+
+              {productoEdicion.imagenes.length > 0 && (
+                <div className="previsualizacion-imagenes">
+                  {productoEdicion.imagenes.map((imagen, index) => (
+                    <div key={index} className="item-imagen-preview">
+                      <img src={imagen} alt={`Preview ${index + 1}`} />
+                      <button
+                        type="button"
+                        className="btn-eliminar-imagen"
+                        onClick={() => eliminarImagenEdicion(index)}
+                        title="Eliminar imagen"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <div className="modal-actions">
               <button onClick={() => setMostrarModalStock(false)}>
@@ -768,7 +871,7 @@ const obtenerProductosFiltrados = (categoria) => {
                 className="btn-primary"
                 onClick={actualizarStockHandler}
               >
-                Actualizar
+                Guardar cambios
               </button>
             </div>
           </div>

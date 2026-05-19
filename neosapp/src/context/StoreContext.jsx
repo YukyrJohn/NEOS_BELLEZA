@@ -344,6 +344,39 @@ const { data, error } = await supabase
     return true;
   };
 
+  const actualizarProducto = async (productoId, datos) => {
+    const producto = productos.find((p) => p.id === productoId);
+    if (!producto) return { error: "Producto no encontrado" };
+
+    const datosActualizacion = {};
+    if (datos.nombre != null) datosActualizacion.nombre = datos.nombre;
+    if (datos.precio != null) datosActualizacion.precio = Number(datos.precio);
+    if (datos.stock != null) datosActualizacion.stock = Number(datos.stock);
+    if (datos.descripcion != null) datosActualizacion.descripcion = datos.descripcion;
+    if (datos.imagenes != null && datos.imagenes.length > 0) {
+      datosActualizacion.imagen_url = datos.imagenes[0];
+    }
+
+    const { data, error } = await supabase
+      .from("productos")
+      .update(datosActualizacion)
+      .eq("id", productoId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error actualizando producto:", error);
+      return { error: error.message };
+    }
+
+    const productoActualizado = adaptarProducto(data);
+    setProductos((prev) =>
+      prev.map((p) => (p.id === productoId ? productoActualizado : p))
+    );
+
+    return { success: true, producto: productoActualizado };
+  };
+
   const agotarProducto = async (productoId) => {
     const producto = productos.find((p) => p.id === productoId);
     if (!producto) return false;
@@ -808,6 +841,7 @@ return (
       agregarItemPedido,
       eliminarItemPedido,
       actualizarCantidadItemPedido,
+      actualizarProducto,
       cargandoCategorias,
     }}
   >
