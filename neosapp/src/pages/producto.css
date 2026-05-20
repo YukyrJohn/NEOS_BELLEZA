@@ -280,7 +280,9 @@
     gap: 12px;
   }
 
-  .scroll-btn {
+  .scroll-btn,
+  .btn-carrusel-prev,
+  .btn-carrusel-next {
     display: none;
   }
 
