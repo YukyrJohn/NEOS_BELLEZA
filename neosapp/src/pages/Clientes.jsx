@@ -1,16 +1,32 @@
 import { useState } from "react";
 import { useStore } from "../context/StoreContext";
 import "../styles/clientes.css";
-import { supabase } from "../context/supabaseClient";
 
 
 export default function Clientes() {
   const { clientes, pedidos, registrarPago, actualizarClienteTelefono } = useStore();
+  const [searchTerm, setSearchTerm] = useState("");
   const [clienteSeleccionadoId, setClienteSeleccionadoId] = useState(null);
   const [montoPago, setMontoPago] = useState("");
   const [metodoPago, setMetodoPago] = useState("efectivo");
   const [descripcionPago, setDescripcionPago] = useState("");
   const [telefonoTemporal, setTelefonoTemporal] = useState("");
+
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+  const clientesFiltrados = normalizedSearch
+    ? clientes.filter((cliente) =>
+        [
+          cliente.nombre,
+          cliente.cedula,
+          cliente.direccion,
+          cliente.telefono,
+          cliente.correo,
+        ]
+          .join(" ")
+          .toLowerCase()
+          .includes(normalizedSearch)
+      )
+    : clientes;
 
   // Obtener cliente actual del contexto
   const clienteSeleccionado = clienteSeleccionadoId 
@@ -56,9 +72,18 @@ export default function Clientes() {
       <div className="clientes-contenedor">
         {/* Lista de clientes */}
         <div className="clientes-lista">
-          <h3>Clientes ({clientes.length})</h3>
+          <div className="clientes-lista-header">
+            <h3>Clientes ({clientesFiltrados.length}{searchTerm ? ` de ${clientes.length}` : ""})</h3>
+            <input
+              type="search"
+              placeholder="Buscar clientes por nombre, cédula o teléfono..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="busqueda-clientes"
+            />
+          </div>
           <div className="clientes-scroll">
-            {clientes.map((cliente) => (
+            {clientesFiltrados.map((cliente) => (
               <div
                 key={cliente.id}
                 className={`cliente-item ${clienteSeleccionadoId === cliente.id ? "activo" : ""}`}

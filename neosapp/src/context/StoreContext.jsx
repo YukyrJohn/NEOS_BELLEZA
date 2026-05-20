@@ -11,6 +11,7 @@ export function StoreProvider({ children }) {
   const [pedidos, setPedidos] = useState([]);
   const [repartidores, setRepartidores] = useState([]);
   const [vendedores, setVendedores] = useState([]);
+  const [usuariosVendedores, setUsuariosVendedores] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [cargandoCategorias, setCargandoCategorias] = useState(true);
 
@@ -227,6 +228,19 @@ const cargarProductos = async () => {
     setVendedores(data || []);
   };
 
+  const cargarUsuariosVendedores = async () => {
+    const { data, error } = await supabase
+      .from("usuarios")
+      .select("id, nombre, email, zona, rol")
+      .eq("rol", "vendedor");
+
+    if (error) {
+      console.error("Error cargando vendedores desde usuarios:", error);
+      return;
+    }
+    setUsuariosVendedores(data || []);
+  };
+
   const cargarCategorias = async () => {
     setCargandoCategorias(true);
     try {
@@ -250,11 +264,17 @@ const cargarProductos = async () => {
         cargarPedidos(productosCargados),
         cargarRepartidores(),
         cargarVendedores(),
+        cargarUsuariosVendedores(),
         cargarCategorias(),
       ]);
     };
 
-    cargarDatos();
+    const init = async () => {
+      await supabase.auth.getSession();
+      await cargarDatos();
+    };
+
+    init();
   }, []);
 
   const crearProducto = async (
@@ -520,90 +540,324 @@ const cargarProductos = async () => {
     }
   };
 
-  const crearVendedor = async (nombre, zona) => {
-    if (!nombre || !zona) {
-      return { error: "Nombre y zona son requeridos" };
-    }
-
-    const { data, error } = await supabase
-      .from("vendedores")
-      .insert([{ nombre, zona }])
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error creando vendedor:", error);
-      return { error: error.message };
-    }
-
-    setVendedores((prev) => [...prev, data]);
-    return { success: true, vendedor: data };
-  };
-
-const crearCliente = async (
-  nombre,
-  cedula,
-  direccion,
-  telefono = "",
-  correo = "",
-  vendedor_id = null,
-  password = "123456"
-) => {
-  if (!nombre || !cedula || !direccion) {
-    return { error: "Nombre, cédula y dirección son requeridos" };
+const crearVendedor = async (nombre, zona, email, password) => {
+  if (!nombre || !zona || !email || !password) {
+    return { error: "Nombre, zona, email y contraseña son requeridos" };
   }
 
-  // 1. Verificar si ya existe usuario
-  const { data: usuarioExistente } = await supabase
-    .from("usuarios")
-    .select("id")
-    .eq("cedula", cedula)
-    .maybeSingle();
+  const { data: { session: previousSession } } = await supabase.auth.getSession();
 
-  // 2. Crear usuario si no existe
-  if (!usuarioExistente) {
-    const { error: errorUsuario } = await supabase
-      .from("usuarios")
-      .insert([
-        {
-          nombre,
-          cedula,
-          email: correo || null,
-          rol: "cliente",
-          password_hash: password,
-        },
-      ]);
+  try {
+    // 1. Verificar si ya existe
+    const { data: usuarioExistente, error: errorUsuarioExistente } =
+      await supabase
+        .from("usuarios")
+        .select("id")
+        .eq("email", email)
+        .maybeSingle();
+
+    if (errorUsuarioExistente) {
+      console.error(errorUsuarioExistente);
+      return { error: errorUsuarioExistente.message };
+    }
+
+    if (usuarioExistente) {
+      return { error: "Ya existe un usuario con ese email" };
+    }
+
+    // 2. Crear usuario en Supabase Auth (genera UUID)
+    const { data: authData, error: authError } =
+      await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+    if (authError) {
+      console.error("Error creando usuario en Auth:", authError);
+      return { error: authError.message };
+    }
+
+    if (!authData.user?.id) {
+      return { error: "No se pudo obtener el ID del usuario creado" };
+    }
+
+    const userId = authData.user.id;
+
+    // 3. Insertar en tabla usuarios
+    const { data: usuarioData, error: errorUsuario } =
+      await supabase
+        .from("usuarios")
+        .insert([
+          {
+            id: userId,
+            nombre,
+            email,
+            rol: "vendedor",
+          },
+        ])
+        .select()
+        .single();
 
     if (errorUsuario) {
-      console.error("Error creando usuario:", errorUsuario);
+      console.error("Error creando usuario vendedor:", errorUsuario);
+
+      // rollback opcional
+      await supabase.auth.admin.deleteUser(userId);
+
+      if (previousSession) {
+        const { error: restoreError } = await supabase.auth.setSession({
+          access_token: previousSession.access_token,
+          refresh_token: previousSession.refresh_token,
+        });
+        if (restoreError) {
+          console.error("Error restaurando sesión anterior tras rollback:", restoreError);
+        }
+      }
+
       return { error: errorUsuario.message };
     }
+
+    // 4. Insertar en tabla vendedores (conectado por usuario_id)
+    const { data: vendedorData, error: errorVendedor } =
+      await supabase
+        .from("vendedores")
+        .insert([
+          {
+            zona,
+            estado: "Activo",
+            usuario_id: userId, // ← ESTA ES LA CLAVE
+          },
+        ])
+        .select()
+        .single();
+
+    if (errorVendedor) {
+      console.error("Error creando vendedor:", errorVendedor);
+      return { error: errorVendedor.message };
+    }
+
+    // 5. Actualizar estado local
+    setVendedores((prev) => [...prev, vendedorData]);
+
+    if (previousSession) {
+      const { error: restoreError } = await supabase.auth.setSession({
+        access_token: previousSession.access_token,
+        refresh_token: previousSession.refresh_token,
+      });
+      if (restoreError) {
+        console.error("Error restaurando sesión anterior:", restoreError);
+      }
+    }
+
+    return {
+      success: true,
+      vendedor: vendedorData,
+    };
+
+  } catch (err) {
+    console.error(err);
+    return { error: err.message };
   }
+};
 
-  // 3. Crear cliente
-  const { data, error } = await supabase
-    .from("clientes")
-    .insert([
-      { nombre, cedula, direccion, telefono, correo, vendedor_id },
-    ])
-    .select()
-    .single();
+const crearCliente = async (
+    nombre,
+    cedula,
+    direccion,
+    telefono = "",
+    correo = "",
+    vendedor_id = null,
+    password = "123456"
+  ) => {
+    if (!nombre || !cedula || !direccion) {
+      return { error: "Nombre, cédula y dirección son requeridos" };
+    }
 
-  if (error) {
-    console.error("Error creando cliente:", error);
-    return { error: error.message };
-  }
+    // Si se proporciona correo, seguiremos la misma lógica que crearVendedor:
+    // 1) crear usuario en Auth, 2) insertar en table `usuarios`, 3) insertar en `clientes`.
+    if (correo && correo.trim() !== "") {
+      const { data: { session: previousSession } } = await supabase.auth.getSession();
 
-  setClientes((prev) => [
-    ...prev,
-    {
-      ...data,
-      saldo: data.saldo ?? 0,
-      transacciones: data.transacciones ?? [],
-    },
-  ]);
+      try {
+        // Verificar si ya existe usuario por email o cédula
+        const { data: usuarioExistenteEmail } = await supabase
+          .from("usuarios")
+          .select("id")
+          .eq("email", correo)
+          .maybeSingle();
 
-  return { success: true, cliente: data };
+        const { data: usuarioExistenteCedula } = await supabase
+          .from("usuarios")
+          .select("id")
+          .eq("cedula", cedula)
+          .maybeSingle();
+
+        if (usuarioExistenteEmail || usuarioExistenteCedula) {
+          return { error: "Ya existe un usuario con ese email o cédula" };
+        }
+
+        // Crear usuario en Supabase Auth
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: correo,
+          password,
+        });
+
+        if (authError) {
+          console.error("Error creando usuario en Auth:", authError);
+          return { error: authError.message };
+        }
+
+        if (!authData.user?.id) {
+          return { error: "No se pudo obtener el ID del usuario creado" };
+        }
+
+        const userId = authData.user.id;
+
+        // Insertar en tabla usuarios
+        const { data: usuarioData, error: errorUsuario } = await supabase
+          .from("usuarios")
+          .insert([
+            {
+              id: userId,
+              nombre,
+              cedula,
+              email: correo,
+              rol: "cliente",
+            },
+          ])
+          .select()
+          .single();
+
+        if (errorUsuario) {
+          console.error("Error creando usuario cliente:", errorUsuario);
+          // rollback: eliminar usuario auth creado
+          try { await supabase.auth.admin.deleteUser(userId); } catch (e) { console.error(e); }
+
+          if (previousSession) {
+            const { error: restoreError } = await supabase.auth.setSession({
+              access_token: previousSession.access_token,
+              refresh_token: previousSession.refresh_token,
+            });
+            if (restoreError) console.error("Error restaurando sesión anterior tras rollback:", restoreError);
+          }
+
+          return { error: errorUsuario.message };
+        }
+
+        // Insertar en tabla clientes vinculado al usuario
+        const { data: clienteData, error: errorCliente } = await supabase
+          .from("clientes")
+          .insert([
+            {
+              usuario_id: userId,
+              nombre,
+              cedula,
+              direccion,
+              telefono,
+              correo,
+              vendedor_id,
+            },
+          ])
+          .select()
+          .single();
+
+        if (errorCliente) {
+          console.error("Error creando cliente:", errorCliente);
+          // rollback: eliminar usuario y usuario row
+          try { await supabase.auth.admin.deleteUser(userId); } catch (e) { console.error(e); }
+          try { await supabase.from("usuarios").delete().eq("id", userId); } catch (e) { console.error(e); }
+
+          if (previousSession) {
+            const { error: restoreError } = await supabase.auth.setSession({
+              access_token: previousSession.access_token,
+              refresh_token: previousSession.refresh_token,
+            });
+            if (restoreError) console.error("Error restaurando sesión anterior tras rollback:", restoreError);
+          }
+
+          return { error: errorCliente.message };
+        }
+
+        const clienteCreado = {
+          ...clienteData,
+          saldo: clienteData.saldo ?? 0,
+          transacciones: clienteData.transacciones ?? [],
+        };
+
+        setClientes((prev) => [...prev, clienteCreado]);
+
+        if (previousSession) {
+          const { error: restoreError } = await supabase.auth.setSession({
+            access_token: previousSession.access_token,
+            refresh_token: previousSession.refresh_token,
+          });
+          if (restoreError) console.error("Error restaurando sesión anterior:", restoreError);
+        }
+
+        return { success: true, cliente: clienteCreado };
+
+      } catch (err) {
+        console.error("Error en crearCliente (con auth):", err);
+        return { error: err.message || "Error al crear cliente" };
+      }
+    }
+
+    // Si no hay correo, conservar flujo previo (crear sin Auth)
+    try {
+      const { data: usuarioExistente, error: usuarioError } = await supabase
+        .from("usuarios")
+        .select("id")
+        .eq("cedula", cedula)
+        .maybeSingle();
+
+      if (usuarioError) {
+        console.error("Error verificando usuario existente:", usuarioError);
+        return { error: usuarioError.message };
+      }
+
+      if (!usuarioExistente) {
+        const { error: errorUsuario } = await supabase
+          .from("usuarios")
+          .insert([
+            {
+              nombre,
+              cedula,
+              email: correo || null,
+              rol: "cliente",
+              password_hash: password,
+            },
+          ]);
+
+        if (errorUsuario) {
+          console.error("Error creando usuario:", errorUsuario);
+          return { error: errorUsuario.message };
+        }
+      }
+
+      const { data, error } = await supabase
+        .from("clientes")
+        .insert([{ nombre, cedula, direccion, telefono, correo, vendedor_id }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error creando cliente:", error);
+        return { error: error.message };
+      }
+
+      const clienteCreado = {
+        ...data,
+        saldo: data.saldo ?? 0,
+        transacciones: data.transacciones ?? [],
+      };
+
+      setClientes((prev) => [...prev, clienteCreado]);
+
+      return { success: true, cliente: clienteCreado };
+    } catch (err) {
+      console.error("Error en crearCliente:", err);
+      return { error: err.message || "Error al crear cliente" };
+    }
   };
 
   const obtenerClientesPorVendedor = (vendedorId) =>
@@ -706,6 +960,27 @@ const crearCliente = async (
 
     setClientes((prev) =>
       prev.map((c) => (c.id === clienteId ? { ...c, telefono } : c))
+    );
+    return true;
+  };
+
+  const actualizarClienteVendedor = async (clienteId, vendedorId) => {
+    const vendedorIdNormalized = vendedorId ? parseInt(vendedorId, 10) : null;
+
+    const { error } = await supabase
+      .from("clientes")
+      .update({ vendedor_id: vendedorIdNormalized })
+      .eq("id", clienteId);
+
+    if (error) {
+      console.error("Error actualizando vendedor del cliente:", error);
+      return false;
+    }
+
+    setClientes((prev) =>
+      prev.map((c) =>
+        c.id === clienteId ? { ...c, vendedor_id: vendedorIdNormalized } : c
+      )
     );
     return true;
   };
@@ -819,6 +1094,7 @@ return (
       pedidos,
       repartidores,
       vendedores,
+      usuariosVendedores,
       categorias,
       crearProducto,
       actualizarStock,
@@ -826,6 +1102,7 @@ return (
       crearPedido,
       crearCliente,
       crearVendedor,
+      actualizarClienteVendedor,
       obtenerClientesPorVendedor,
       calcularVentasPorVendedor,
       crearRepartidor,

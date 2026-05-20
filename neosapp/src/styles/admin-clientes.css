@@ -123,6 +123,53 @@
   cursor: pointer;
 }
 
+.select-vendedor,
+.select-vendedor-row {
+  min-width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.select-vendedor-row:focus,
+.select-vendedor:focus {
+  outline: none;
+  border-color: #1e40af;
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
+.clientes-grid-header,
+.form-crear-cliente .clientes-lista-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.busqueda-clientes {
+  flex: 1;
+  min-width: 220px;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 13px;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.busqueda-clientes:focus {
+  outline: none;
+  border-color: #1e40af;
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
 .btn-guardar {
   padding: 10px 24px;
   background: #27ae60;

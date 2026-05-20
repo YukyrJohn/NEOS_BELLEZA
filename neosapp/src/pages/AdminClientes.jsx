@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useStore } from "../context/StoreContext";
 import "../styles/admin-clientes.css";
-import { supabase } from "../context/supabaseClient";
 
 
 export default function AdminClientes() {
-  const { clientes, crearCliente, vendedores } = useStore();
+  const { clientes, crearCliente, vendedores, usuariosVendedores, actualizarClienteVendedor } = useStore();
+  const [searchTerm, setSearchTerm] = useState("");
   const [mostrarForm, setMostrarForm] = useState(false);
   const [nuevoCliente, setNuevoCliente] = useState({
     cedula: "",
@@ -17,13 +17,13 @@ export default function AdminClientes() {
   });
   const [mensaje, setMensaje] = useState("");
 
-  const handleCrearCliente = () => {
+  const handleCrearCliente = async () => {
     if (!nuevoCliente.cedula || !nuevoCliente.nombre || !nuevoCliente.direccion) {
       setMensaje("❌ Cédula, nombre y dirección son requeridos");
       return;
     }
 
-    const resultado = crearCliente(
+    const resultado = await crearCliente(
       nuevoCliente.nombre,
       nuevoCliente.cedula,
       nuevoCliente.direccion,
@@ -51,6 +51,34 @@ export default function AdminClientes() {
       setMensaje("");
     }, 2000);
   };
+
+  const vendedoresConUsuarios = vendedores.map((vendedor) => {
+    const usuario = usuariosVendedores.find((u) => u.id === vendedor.usuario_id);
+    return {
+      ...vendedor,
+      nombre: usuario?.nombre || vendedor.nombre,
+      email: usuario?.email || "",
+      zona: vendedor.zona || usuario?.zona || "",
+    };
+  });
+
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+  const clientesFiltrados = normalizedSearch
+    ? clientes.filter((cliente) => {
+        const vendedorNombre = vendedoresConUsuarios.find((v) => v.id === cliente.vendedor_id)?.nombre || "";
+        return [
+          cliente.nombre,
+          cliente.cedula,
+          cliente.direccion,
+          cliente.telefono,
+          cliente.correo,
+          vendedorNombre,
+        ]
+          .join(" ")
+          .toLowerCase()
+          .includes(normalizedSearch);
+      })
+    : clientes;
 
   return (
     <div className="admin-clientes-page">
@@ -99,13 +127,14 @@ export default function AdminClientes() {
               onChange={(e) => setNuevoCliente({ ...nuevoCliente, correo: e.target.value })}
             />
             <select
+              className="select-vendedor"
               value={nuevoCliente.vendedor_id || ""}
               onChange={(e) => setNuevoCliente({ ...nuevoCliente, vendedor_id: e.target.value })}
             >
               <option value="">Seleccionar Vendedor (Opcional)</option>
-              {vendedores.map((vendedor) => (
+              {vendedoresConUsuarios.map((vendedor) => (
                 <option key={vendedor.id} value={vendedor.id}>
-                  {vendedor.nombre} - {vendedor.zona}
+                  {vendedor.nombre} - {vendedor.zona || vendedor.email}
                 </option>
               ))}
             </select>
@@ -119,7 +148,16 @@ export default function AdminClientes() {
 
       {/* Lista de clientes */}
       <div className="clientes-grid">
-        <h3>Total de Clientes: {clientes.length}</h3>
+        <div className="clientes-grid-header">
+          <h3>Total de Clientes: {clientesFiltrados.length}{searchTerm ? ` de ${clientes.length}` : ""}</h3>
+          <input
+            type="search"
+            placeholder="Buscar cliente por nombre, cédula, correo o vendedor..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="busqueda-clientes"
+          />
+        </div>
         <div className="clientes-table">
           <div className="table-header">
             <div className="col-cedula">Cédula</div>
@@ -130,9 +168,9 @@ export default function AdminClientes() {
             <div className="col-vendedor">Vendedor</div>
           </div>
 
-          {clientes.length > 0 ? (
-            clientes.map((cliente) => {
-              const vendedor = vendedores.find((v) => v.id === cliente.vendedor_id);
+          {clientesFiltrados.length > 0 ? (
+            clientesFiltrados.map((cliente) => {
+              const vendedor = vendedoresConUsuarios.find((v) => v.id === cliente.vendedor_id);
               return (
                 <div key={cliente.id} className="table-row">
                   <div className="col-cedula">{cliente.cedula}</div>
@@ -140,7 +178,20 @@ export default function AdminClientes() {
                   <div className="col-direccion">{cliente.direccion}</div>
                   <div className="col-telefono">{cliente.telefono || "-"}</div>
                   <div className="col-correo">{cliente.correo || "-"}</div>
-                  <div className="col-vendedor">{vendedor ? vendedor.nombre : "-"}</div>
+                  <div className="col-vendedor">
+                    <select
+                      className="select-vendedor-row"
+                      value={cliente.vendedor_id ?? ""}
+                      onChange={(e) => actualizarClienteVendedor(cliente.id, e.target.value)}
+                    >
+                      <option value="">Sin vendedor</option>
+                      {vendedoresConUsuarios.map((vendedorOption) => (
+                        <option key={vendedorOption.id} value={vendedorOption.id}>
+                          {vendedorOption.nombre} - {vendedorOption.zona || vendedorOption.email}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               );
             })

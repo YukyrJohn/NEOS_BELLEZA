@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { useStore } from "../context/StoreContext";
 import "../styles/vendedores.css";
-import { supabase } from "../context/supabaseClient";
-
 
 export default function Vendedores() {
   const {
@@ -14,6 +12,8 @@ export default function Vendedores() {
   const [vendedorSeleccionado, setVendedorSeleccionado] = useState(null);
   const [nuevoNombre, setNuevoNombre] = useState("");
   const [nuevaZona, setNuevaZona] = useState("");
+  const [nuevoEmail, setNuevoEmail] = useState("");
+  const [nuevaPassword, setNuevaPassword] = useState("");
   const [mensaje, setMensaje] = useState("");
 
   const handleSeleccionarVendedor = (vendedorId) => {
@@ -43,10 +43,27 @@ export default function Vendedores() {
             value={nuevaZona}
             onChange={(e) => setNuevaZona(e.target.value)}
           />
+          <input
+            type="email"
+            placeholder="Email del vendedor"
+            value={nuevoEmail}
+            onChange={(e) => setNuevoEmail(e.target.value)}
+          />
+          <input
+            type="password"
+            placeholder="Contraseña"
+            value={nuevaPassword}
+            onChange={(e) => setNuevaPassword(e.target.value)}
+          />
           <button
             className="btn-crear-vendedor"
             onClick={async () => {
-              const resultado = await crearVendedor(nuevoNombre.trim(), nuevaZona.trim());
+              const resultado = await crearVendedor(
+                nuevoNombre.trim(),
+                nuevaZona.trim(),
+                nuevoEmail.trim(),
+                nuevaPassword
+              );
               if (resultado.error) {
                 setMensaje(`❌ ${resultado.error}`);
                 return;
@@ -54,6 +71,8 @@ export default function Vendedores() {
               setMensaje(`✅ Vendedor ${resultado.vendedor.nombre} creado`);
               setNuevoNombre("");
               setNuevaZona("");
+              setNuevoEmail("");
+              setNuevaPassword("");
               setTimeout(() => setMensaje(""), 3000);
             }}
           >

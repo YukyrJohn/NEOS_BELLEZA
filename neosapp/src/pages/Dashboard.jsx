@@ -5,7 +5,7 @@ import Producto from "./Producto";
 import RepartidoresChart from "../components/RepartidoresChart";
 
 export default function Dashboard() {
-  const { pedidos, repartidores, productos, clientes } = useStore();
+  const { pedidos, repartidores, productos, clientes, vendedores, obtenerClientesPorVendedor, calcularVentasPorVendedor } = useStore();
   const { esAdmin, obtenerUsuario } = useAuth();
   const esAdministrador = esAdmin();
   const usuarioActual = obtenerUsuario();
@@ -48,6 +48,22 @@ export default function Dashboard() {
   const repartidoresActivos = repartidores?.filter(
     (r) => r.estado === "activo"
   ).length || 0;
+
+  const vendedorStats = (vendedores || []).map((vendedor) => {
+    const clientesVendedor = obtenerClientesPorVendedor(vendedor.id);
+    const ventasTotales = calcularVentasPorVendedor(vendedor.id);
+    const pedidosCount = pedidos.filter((pedido) =>
+      clientesVendedor.some((cliente) => cliente.cedula === pedido.clienteCedula)
+    ).length;
+
+    return {
+      id: vendedor.id,
+      nombre: vendedor.nombre || "Sin nombre",
+      clientesCount: clientesVendedor.length,
+      pedidosCount,
+      ventasTotales,
+    };
+  });
 
   return (
     <div className="dashboard">
@@ -96,6 +112,31 @@ export default function Dashboard() {
       <div className="card">
         <h3>Estadísticas de Repartidores</h3>
         <RepartidoresChart pedidos={pedidos} repartidores={repartidores || []} />
+      </div>
+
+      {/* Tabla de estadísticas de vendedores */}
+      <div className="card">
+        <h3>Estadísticas de Vendedores</h3>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Vendedor</th>
+              <th>Clientes asignados</th>
+              <th>Pedidos</th>
+              <th>Ventas totales</th>
+            </tr>
+          </thead>
+          <tbody>
+            {vendedorStats.map((vendedor) => (
+              <tr key={vendedor.id}>
+                <td>{vendedor.nombre}</td>
+                <td>{vendedor.clientesCount}</td>
+                <td>{vendedor.pedidosCount}</td>
+                <td>${vendedor.ventasTotales.toLocaleString("es-CO")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
     </div>
