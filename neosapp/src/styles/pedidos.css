@@ -97,6 +97,9 @@
   margin: 6px 0;
   font-size: 15px;
   color: #333;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .pedido-info-cliente strong {
@@ -125,6 +128,7 @@
   padding: 6px 0;
   color: #555;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .pedido-item .price {
@@ -609,6 +613,13 @@
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid #ddd;
+}
+
+.pedidos-table td {
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 
 .pedidos-table th {
