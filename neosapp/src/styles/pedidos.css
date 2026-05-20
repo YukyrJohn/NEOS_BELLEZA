@@ -556,8 +556,24 @@
     flex: 1;
   }
 
+  .pedido-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
   .pedido-item-editable {
     flex-wrap: wrap;
+  }
+
+  .producto-detalle-texto {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .price {
+    width: 100%;
+    text-align: left;
   }
 
   .item-controls {
@@ -870,5 +886,139 @@
 
   .pedidos-table td:before {
     font-size: 11px;
+  }
+
+  .pedido-item,
+  .pedido-item-detalle,
+  .pedido-item-editable {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 8px;
+  }
+
+  /* Mantener padding y tipografía en móvil pequeño */
+  .pedido-item,
+  .pedido-item-detalle,
+  .pedido-item-editable {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  /* Mantener el layout vertical de filas y apilamiento dentro de cada tarjeta */
+  .pedidos-table {
+    display: block;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .pedidos-table thead {
+    display: none;
+  }
+
+  .pedidos-table tbody {
+    display: block;
+  }
+
+  .pedidos-table tr {
+    display: block;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    padding: 12px;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .pedidos-table td {
+    display: block;
+    border: none;
+    padding: 8px 0;
+    text-align: left;
+    position: relative;
+    padding-left: 50%;
+  }
+
+  .pedidos-table td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    width: 45%;
+    padding-right: 10px;
+    white-space: nowrap;
+    font-weight: 600;
+    color: #666;
+    font-size: 11px;
+  }
+
+  .producto-miniatura {
+    width: 100%;
+    min-width: 0;
+    display: block;
+  }
+
+  .producto-miniatura img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+  }
+
+  .producto-detalle-texto,
+  .price,
+  .item-controls,
+  .item-subtotal {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .producto-detalle-texto {
+    flex: 1 1 100%;
+  }
+
+  .price {
+    text-align: left;
+  }
+
+  .item-controls {
+    order: 3;
+    justify-content: flex-start;
+  }
+
+  .item-subtotal {
+    order: 4;
+  }
+
+  .btn-eliminar-item {
+    order: 5;
+    width: 100%;
+  }
+  .pedido-item-detalle,
+  .pedido-item-editable {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .producto-miniatura {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .producto-detalle-texto,
+  .price,
+  .item-controls,
+  .item-subtotal {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .producto-detalle-texto {
+    flex: 1 1 100%;
+  }
+
+  .price {
+    text-align: left;
   }
 }
