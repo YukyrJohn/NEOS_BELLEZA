@@ -48,6 +48,7 @@ const adaptarProducto = (p) => ({
     items,
     total: p.total ?? p.totalPedido ?? 0,
     estado: p.estado ?? "Pendiente",
+    repartidor_id: p.repartidor_id ?? null,
     repartidor: p.repartidor ?? "",
   });
 
@@ -221,10 +222,13 @@ const cargarProductos = async () => {
   };
 
   const cargarRepartidores = async () => {
-    const { data, error } = await supabase.from("repartidores").select("*");
+    const { data, error } = await supabase
+      .from("usuarios")
+      .select("id, nombre, email, zona, rol")
+      .eq("rol", "repartidor");
 
     if (error) {
-      console.error("Error cargando repartidores:", error);
+      console.error("Error cargando repartidores desde usuarios:", error);
       return;
     }
 
@@ -969,27 +973,108 @@ const datosCliente = {
       .reduce((sum, pedido) => sum + Number(pedido.total || 0), 0);
   };
 
-  const crearRepartidor = async (nombre, zona) => {
-    if (!nombre || !zona) return { error: "Nombre y zona son requeridos" };
-
-    const { data, error } = await supabase
-      .from("repartidores")
-      .insert([{ nombre, zona }])
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error creando repartidor:", error);
-      return { error: error.message };
+  const crearRepartidor = async (nombre, email, zona, password) => {
+    if (!nombre || !email || !zona || !password) {
+      return { error: "Nombre, email, zona y contraseña son requeridos" };
     }
 
-    setRepartidores((prev) => [...prev, data]);
-    return { success: true, repartidor: data };
+    const { data: { session: previousSession } } = await supabase.auth.getSession();
+
+    try {
+      // 1. Verificar si ya existe usuario con ese email
+      const { data: usuarioExistente, error: errorUsuarioExistente } =
+        await supabase
+          .from("usuarios")
+          .select("id")
+          .eq("email", email)
+          .maybeSingle();
+
+      if (errorUsuarioExistente) {
+        console.error(errorUsuarioExistente);
+        return { error: errorUsuarioExistente.message };
+      }
+
+      if (usuarioExistente) {
+        return { error: "Ya existe un usuario con ese email" };
+      }
+
+      // 2. Crear usuario en Supabase Auth
+      const { data: authData, error: authError } =
+        await supabase.auth.signUp({
+          email,
+          password,
+        });
+
+      if (authError) {
+        console.error("Error creando usuario en Auth:", authError);
+        return { error: authError.message };
+      }
+
+      if (!authData.user?.id) {
+        return { error: "No se pudo obtener el ID del usuario creado" };
+      }
+
+      const userId = authData.user.id;
+
+      // 3. Insertar en tabla usuarios con rol "repartidor"
+      const { data: usuarioData, error: errorUsuario } =
+        await supabase
+          .from("usuarios")
+          .insert([
+            {
+              id: userId,
+              nombre,
+              email,
+              rol: "repartidor",
+              zona,
+            },
+          ])
+          .select()
+          .single();
+
+      if (errorUsuario) {
+        console.error("Error creando usuario repartidor:", errorUsuario);
+
+        // rollback: eliminar usuario auth creado
+        await supabase.auth.admin.deleteUser(userId);
+
+        if (previousSession) {
+          const { error: restoreError } = await supabase.auth.setSession({
+            access_token: previousSession.access_token,
+            refresh_token: previousSession.refresh_token,
+          });
+          if (restoreError) {
+            console.error("Error restaurando sesión anterior tras rollback:", restoreError);
+          }
+        }
+
+        return { error: errorUsuario.message };
+      }
+
+      // 4. Actualizar estado local
+      setRepartidores((prev) => [...prev, usuarioData]);
+
+      // Restaurar sesión anterior si existía
+      if (previousSession) {
+        const { error: restoreError } = await supabase.auth.setSession({
+          access_token: previousSession.access_token,
+          refresh_token: previousSession.refresh_token,
+        });
+        if (restoreError) {
+          console.error("Error restaurando sesión anterior:", restoreError);
+        }
+      }
+
+      return { success: true, repartidor: usuarioData };
+    } catch (err) {
+      console.error("Error en crearRepartidor:", err);
+      return { error: err.message };
+    }
   };
 
   const eliminarRepartidor = async (id) => {
     const { error } = await supabase
-      .from("repartidores")
+      .from("usuarios")
       .delete()
       .eq("id", id);
 
@@ -1201,23 +1286,53 @@ const datosCliente = {
     return true;
   };
 
-  const asignarRepartidor = async (pedidoId, repartidor) => {
-    const { error } = await supabase
-      .from("pedidos")
-      .update({ repartidor })
-      .eq("id", pedidoId);
-
-    if (error) {
-      console.error("Error asignando repartidor:", error);
-      return false;
+  const asignarRepartidor = async (pedidoId, repartidorId) => {
+    // Si viene vacío, asignar null
+    if (!repartidorId) {
+      repartidorId = null;
     }
 
-    setPedidos((prev) =>
-      prev.map((pedido) =>
-        pedido.id === pedidoId ? { ...pedido, repartidor } : pedido
-      )
-    );
-    return true;
+    try {
+      // Intentar actualizar con repartidor_id (espera UUID text/string)
+      const { error: errorId } = await supabase
+        .from("pedidos")
+        .update({ repartidor_id: repartidorId })
+        .eq("id", pedidoId);
+
+      if (errorId) {
+        // Si falla por tipo de dato, intentar guardar como string en "repartidor"
+        console.warn("No se pudo guardar con repartidor_id, intentando con 'repartidor':", errorId);
+        
+        // Obtener el nombre del repartidor si existe
+        let valorGuardar = null;
+        if (repartidorId) {
+          const repartidor = repartidores.find((r) => r.id === repartidorId);
+          valorGuardar = repartidor ? repartidor.nombre : repartidorId;
+        }
+
+        const { error: errorRepartidor } = await supabase
+          .from("pedidos")
+          .update({ repartidor: valorGuardar })
+          .eq("id", pedidoId);
+
+        if (errorRepartidor) {
+          console.error("Error asignando repartidor:", errorRepartidor);
+          alert("Error al asignar repartidor: " + errorRepartidor.message);
+          return false;
+        }
+      }
+
+      setPedidos((prev) =>
+        prev.map((pedido) =>
+          pedido.id === pedidoId ? { ...pedido, repartidor_id: repartidorId } : pedido
+        )
+      );
+      return true;
+    } catch (err) {
+      console.error("Error en asignarRepartidor:", err);
+      alert("Error: " + err.message);
+      return false;
+    }
   };
 
   const updatePedidoItems = (pedidoId, items) => {

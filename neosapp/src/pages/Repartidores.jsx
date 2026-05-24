@@ -8,12 +8,24 @@ import { supabase } from "../context/supabaseClient";
 export default function Repartidores() {
   const { repartidores, crearRepartidor, eliminarRepartidor } = useStore();
   const [nombre, setNombre] = useState("");
+  const [email, setEmail] = useState("");
   const [zona, setZona] = useState("");
+  const [password, setPassword] = useState("");
+  const [mensaje, setMensaje] = useState("");
 
-  const agregarRepartidor = () => {
-    crearRepartidor(nombre, zona);
-    setNombre("");
-    setZona("");
+  const agregarRepartidor = async () => {
+    const resultado = await crearRepartidor(nombre, email, zona, password);
+    
+    if (resultado.error) {
+      setMensaje(resultado.error);
+    } else {
+      setMensaje("Repartidor agregado exitosamente");
+      setNombre("");
+      setEmail("");
+      setZona("");
+      setPassword("");
+      setTimeout(() => setMensaje(""), 3000);
+    }
   };
 
   return (
@@ -34,6 +46,14 @@ export default function Repartidores() {
         />
 
         <input
+          type="email"
+          className="repartidores-input"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        <input
           type="text"
           className="repartidores-input"
           placeholder="Zona"
@@ -41,9 +61,23 @@ export default function Repartidores() {
           onChange={(e) => setZona(e.target.value)}
         />
 
+        <input
+          type="password"
+          className="repartidores-input"
+          placeholder="Contraseña"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
         <button className="btn-agregar" onClick={agregarRepartidor}>
           Agregar Repartidor
         </button>
+
+        {mensaje && (
+          <p className={`mensaje ${mensaje.toLowerCase().includes("error") ? "error" : "exito"}`}>
+            {mensaje}
+          </p>
+        )}
       </div>
 
       {/* Tarjetas */}
@@ -51,6 +85,7 @@ export default function Repartidores() {
         {repartidores.map((repartidor) => (
           <div key={repartidor.id} className="tarjeta-repartidor">
             <h4>{repartidor.nombre}</h4>
+            <p>Email: {repartidor.email}</p>
             <p>Zona: {repartidor.zona}</p>
 
             <button

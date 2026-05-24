@@ -30,6 +30,26 @@ export default function Pedidos() {
     return undefined;
   }, [imagenModal]);
 
+  const obtenerNombreRepartidor = (repartidorId) => {
+    if (!repartidorId) return "No asignado";
+    
+    // Si es un UUID o número, buscar en la lista de repartidores
+    const repartidor = repartidores.find((r) => String(r.id) === String(repartidorId));
+    if (repartidor) return repartidor.nombre;
+    
+    // Si no encuentra por ID, asumir que ya es el nombre (guardado como string)
+    return String(repartidorId);
+  };
+
+  const manejarCambioRepartidor = async (pedidoId, repartidorId) => {
+    const valor = repartidorId && repartidorId !== "" ? repartidorId : null;
+    const resultado = await asignarRepartidor(pedidoId, valor);
+    if (resultado && modalPedido && modalPedido.id === pedidoId) {
+      // Actualizar el modal local también
+      setModalPedido((prev) => prev ? { ...prev, repartidor_id: valor } : null);
+    }
+  };
+
   const abrirEdicion = (pedido) => {
     setPedidoExpandido(pedido.id);
     setPedidoTemp({ ...pedido });
@@ -102,13 +122,14 @@ export default function Pedidos() {
             <th>Fecha de entrega</th>
             <th>Valor</th>
             <th>Estado</th>
+            <th>Asignación de repartidor</th>
             <th>Acción</th>
           </tr>
         </thead>
         <tbody>
           {pedidosFiltrados.length === 0 ? (
             <tr>
-              <td colSpan="6" className="sin-pedidos">No hay pedidos que coincidan con la búsqueda.</td>
+              <td colSpan="7" className="sin-pedidos">No hay pedidos que coincidan con la búsqueda.</td>
             </tr>
           ) : (
             pedidosFiltrados.map((p) => (
@@ -121,6 +142,28 @@ export default function Pedidos() {
                   <span className={`estado-badge estado-${(p.estado ?? "").toLowerCase().replace(' ', '-')}`}>
                     {p.estado}
                   </span>
+                </td>
+                <td data-label="Asignación de repartidor">
+                  <div className="repartidor-asignacion">
+                    {p.repartidor_id ? (
+                      <span className="repartidor-nombre">{obtenerNombreRepartidor(p.repartidor_id)}</span>
+                    ) : (
+                      <span className="sin-repartidor">No asignado</span>
+                    )}
+                    <select
+                      className="selector-repartidor"
+                      value={String(p.repartidor_id || "")}
+                      onChange={(e) => manejarCambioRepartidor(p.id, e.target.value)}
+                      title="Cambiar repartidor"
+                    >
+                      <option value="">Cambiar...</option>
+                      {repartidores.map((r) => (
+                        <option key={r.id} value={r.id}>
+                          {r.nombre} {r.zona ? `(${r.zona})` : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </td>
                 <td data-label="Acción">
                   <button
@@ -316,14 +359,14 @@ export default function Pedidos() {
                     <div className="control">
                       <label>Repartidor:</label>
                       <select
-                        value={modalPedido.repartidor || ""}
+                        value={String(modalPedido.repartidor_id || "")}
                         onChange={(e) =>
-                          asignarRepartidor(modalPedido.id, e.target.value || null)
+                          manejarCambioRepartidor(modalPedido.id, e.target.value)
                         }
                       >
                         <option value="">Asignar repartidor</option>
                         {repartidores.map((r) => (
-                          <option key={r.id} value={r.nombre}>
+                          <option key={r.id} value={r.id}>
                             {r.nombre} - {r.zona}
                           </option>
                         ))}
